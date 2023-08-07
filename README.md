@@ -25,6 +25,6 @@
 
     The terms of this license stipulate that:
 
-Attribution - If sharing the material, you must give appropriate credit and provide a link to the license.
-NonCommercial - The material may not be used for commercial purposes.
-NoDerivatives - If you remix, transform, or build upon the material, you may not distribute the modified material.
+    Attribution - If sharing the material, you must give appropriate credit and provide a link to the license.
+    NonCommercial - The material may not be used for commercial purposes.
+    NoDerivatives - If you remix, transform, or build upon the material, you may not distribute the modified material.
