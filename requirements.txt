@@ -1,0 +1,14 @@
+beautifulsoup4==4.12.2
+keyboard==0.13.5
+langdetect==1.0.9
+nordvpn_switcher==0.3.0
+numpy==1.25.1
+pandas==2.0.3
+pydub==0.25.1
+python-dotenv==1.0.0
+Requests==2.31.0
+selenium==4.11.2
+setuptools==65.5.0
+sounddevice==0.4.6
+soundfile==0.12.1
+termcolor==2.3.0
