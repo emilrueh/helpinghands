@@ -1,4 +1,5 @@
-# Personal library intended for project-wide calling of common helper functions
+# HelpingHands
+    Personal library intended for project-wide calling of common helper functions
 
 ## Modules
 ### audio
