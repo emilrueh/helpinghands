@@ -25,11 +25,13 @@ from .tokenbucket import TokenBucket
 from .decorator import retry, time_execution
 from .helper import (
     get_git_tree,
-    setup_browser,
-    make_soup,
     colorize,
     get_variable_name,
+)
+from .web import (
     check_internet,
     connect_to_vpn,
     disconnect_from_vpn,
+    setup_browser,
+    make_soup,
 )
