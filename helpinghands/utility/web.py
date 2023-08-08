@@ -17,20 +17,6 @@ import socket
 from typing import Tuple, Any
 
 
-@retry(URLError, "simple")
-def connect_to_vpn(country_list):
-    vpn_settings = initialize_VPN(area_input=country_list)
-    logger.info(f"Connecting to NordVPN with settings {vpn_settings}...")
-    rotate_VPN(vpn_settings)
-    return vpn_settings
-
-
-def disconnect_from_vpn(vpn_settings):
-    logger.info(f"Disconnecting from NordVPN with settings {vpn_settings}...")
-    terminate_VPN(vpn_settings)
-
-
-# INTERNET
 # SELENIUM
 def setup_browser(
     browser: str = "firefox", explicit_wait_seconds: int = 10
@@ -67,6 +53,21 @@ def make_soup(browser, new_soup=True, do_print=True):
     return BeautifulSoup(browser.page_source, "html.parser")
 
 
+# VPN
+@retry(URLError, "simple")
+def connect_to_vpn(country_list):
+    vpn_settings = initialize_VPN(area_input=country_list)
+    logger.info(f"Connecting to NordVPN with settings {vpn_settings}...")
+    rotate_VPN(vpn_settings)
+    return vpn_settings
+
+
+def disconnect_from_vpn(vpn_settings):
+    logger.info(f"Disconnecting from NordVPN with settings {vpn_settings}...")
+    terminate_VPN(vpn_settings)
+
+
+# OTHER
 def check_internet(website):
     try:
         socket.create_connection((website, 80))
