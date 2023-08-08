@@ -9,12 +9,19 @@ from ..utility.decorator import retry
 from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.firefox.options import Options
+from selenium.common.exceptions import (
+    WebDriverException,
+    NoSuchWindowException,
+    InvalidSessionIdException,
+)
+
 from bs4 import BeautifulSoup
 from nordvpn_switcher import initialize_VPN, rotate_VPN, terminate_VPN
 
 from urllib.error import URLError
 import socket
 from typing import Tuple, Any
+import time
 
 
 # SELENIUM
@@ -32,6 +39,30 @@ def setup_browser(
     )  # set up explicit waits
 
     return browser_object, wait_object
+
+
+@retry((NoSuchWindowException, InvalidSessionIdException, ConnectionError))
+def get_website(website, selenium_browser, selenium_wait, VPN_REGIONS):
+    browser = selenium_browser
+    wait = selenium_wait
+    try:
+        browser.get(website)  # open website
+    except (NoSuchWindowException, InvalidSessionIdException) as d:
+        logger.warning(d)
+        if browser:
+            browser.quit()
+        browser, wait = setup_browser()  # reinitialize browser
+        raise
+    except WebDriverException as e:
+        logger.warning(e)
+        has_internet = check_internet("www.google.com")  # check internet
+        if has_internet:
+            logger.warning(f"{e} connecting to NordVPN...")
+            connect_to_vpn(VPN_REGIONS)  # connecting to NordVPN
+            raise
+        else:
+            raise ConnectionError  # no internet
+    return browser, wait
 
 
 # BEAUTIFUL SOUP
