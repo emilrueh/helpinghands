@@ -66,11 +66,11 @@ def config_logger(
     level_options = ["debug", "info", "warning", "exception", "error", "critical"]
 
     if lvl_file:
-        if not os.path.exists("logs"):
-            os.makedirs("logs")
+        if not os.path.exists(logs_dir):
+            os.makedirs(logs_dir)
 
         f_handler = logging.FileHandler(
-            filename=os.path.join("logs", f"{file_name}_{file_timestamp}.log"),
+            filename=os.path.join(logs_dir, f"{file_name}_{file_timestamp}.log"),
             mode="a",
             encoding=encoding,
         )
