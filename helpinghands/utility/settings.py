@@ -5,6 +5,7 @@ logger = logging.getLogger(LOGGER_NAME)
 
 from dotenv import load_dotenv
 import os
+import sys
 import json
 from termcolor import colored
 
@@ -21,10 +22,14 @@ def load_settings(
 
     try:
         if os.getenv(remote_env) is None:
+            # Get directory of the main script
+            main_script_dir = os.path.dirname(os.path.abspath(sys.argv[0]))
             if dotenv_path:
                 load_dotenv(dotenv_path)
             else:
-                load_dotenv()
+                # Load .env file relative to the main script directory
+                dotenv_path = os.path.join(main_script_dir, ".env")
+                load_dotenv(dotenv_path)
             logger.debug(colored("Loaded local .env file", "cyan"))
 
         # Load .env variables if keys are provided
