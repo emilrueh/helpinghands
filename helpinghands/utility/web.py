@@ -41,7 +41,14 @@ def setup_browser(
     return browser_object, wait_object
 
 
-@retry((NoSuchWindowException, InvalidSessionIdException, ConnectionError))
+@retry(
+    (
+        NoSuchWindowException,
+        InvalidSessionIdException,
+        ConnectionError,
+        WebDriverException,
+    )
+)
 def get_website(website, selenium_browser, selenium_wait, VPN_REGIONS):
     browser = selenium_browser
     wait = selenium_wait
