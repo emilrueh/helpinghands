@@ -6,10 +6,10 @@ logger = logging.getLogger(LOGGER_NAME)
 import functools, time
 
 
-def retry(exceptions, mode: str = "medium"):
+def retry(exceptions, time_mode: str = "medium"):
     """
     A retry decorator that applies a backoff strategy for retries and controls the
-    number of retry attempts based on the selected mode. It will retry the decorated
+    number of retry attempts based on the selected time_mode. It will retry the decorated
     function upon raising specified exceptions.
 
     The decorator supports four modes represented by a string determining: total tries, initial wait, backoff factor.
@@ -19,7 +19,7 @@ def retry(exceptions, mode: str = "medium"):
         'advanced': 4 total tries, 4 seconds initial wait, backoff factor of 4.
         'verbose': 6 total tries, 6 seconds initial wait, backoff factor of 3.
 
-        (If no mode or an unrecognized mode is specified, it defaults to 'medium'.)
+        (If no time_mode or an unrecognized time_mode is specified, it defaults to 'medium'.)
 
     Returns:
         A decorator which can be used to decorate a function with the retry logic.
@@ -28,19 +28,19 @@ def retry(exceptions, mode: str = "medium"):
         The exceptions specified in the 'exceptions' parameter if all retry attempts fail.
     """
 
-    if mode == "simple":
+    if time_mode == "simple":
         total_tries = 2
         initial_wait = 1
         backoff_factor = 2
-    elif mode == "medium":
+    elif time_mode == "medium":
         total_tries = 3
         initial_wait = 2
         backoff_factor = 3
-    elif mode == "advanced":
+    elif time_mode == "advanced":
         total_tries = 4
         initial_wait = 4
         backoff_factor = 4
-    elif mode == "verbose":
+    elif time_mode == "verbose":
         total_tries = 6
         initial_wait = 6
         backoff_factor = 3
@@ -71,7 +71,7 @@ def retry(exceptions, mode: str = "medium"):
     return decorator
 
 
-def time_execution(logger, ndigits=3, mode="s"):
+def time_execution(logger, ndigits=3, time_mode="seconds", log_mode="info"):
     def decorator(func):
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
@@ -79,18 +79,29 @@ def time_execution(logger, ndigits=3, mode="s"):
             start_time = time.time()
             result = func(*args, **kwargs)
             end_time = time.time()
-            if mode == "s":
-                logger.info(
-                    f"{func.__name__} completed in {round(end_time - start_time, ndigits)} seconds."
+
+            if log_mode == "info":
+                if time_mode == "seconds":
+                    logger.info(
+                        f"{func.__name__} completed in {round(end_time - start_time, ndigits)} seconds."
+                    )
+                elif time_mode == "minutes":
+                    logger.info(
+                        f"{func.__name__} completed in {round(end_time - start_time, ndigits)/60} minutes."
+                    )
+                elif time_mode == "hours":
+                    logger.info(
+                        f"{func.__name__} completed in {(round(end_time - start_time, ndigits)/60)/60} hours."
+                    )
+                else:
+                    logger.info(
+                        f"{func.__name__} completed in {round(end_time - start_time, ndigits)}s {round(end_time - start_time, ndigits)/60} min {(round(end_time - start_time, ndigits)/60)/60} h."
+                    )
+            else:
+                logger.warning(
+                    "No other log_mode than 'info' implemented at this stage. Please select default."
                 )
-            elif mode == "m":
-                logger.info(
-                    f"{func.__name__} completed in {round(end_time - start_time, ndigits)/60} minutes."
-                )
-            elif mode == "h":
-                logger.info(
-                    f"{func.__name__} completed in {(round(end_time - start_time, ndigits)/60)/60} hours."
-                )
+
             return result
 
         return wrapper
