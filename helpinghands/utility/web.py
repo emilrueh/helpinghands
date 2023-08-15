@@ -48,7 +48,7 @@ def setup_browser(
         # Path to Firefox binary in docker
         if in_docker:
             options.binary_location = "/usr/bin/firefox"
-            service_log_path = "/app/geckodriver.log"
+            service_log_path = "/app/data/geckodriver.log"
         else:
             options.binary_location = r"C:\Program Files\Mozilla Firefox\firefox.exe"
             service_log_path = None
