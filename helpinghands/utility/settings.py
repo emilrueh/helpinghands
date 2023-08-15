@@ -23,7 +23,7 @@ def load_settings(
     in_docker = os.getenv(remote_env) is not None
 
     try:
-        if in_docker:
+        if not in_docker:
             # Get directory of the main script
             main_script_dir = os.path.dirname(os.path.abspath(sys.argv[0]))
             if dotenv_path:
