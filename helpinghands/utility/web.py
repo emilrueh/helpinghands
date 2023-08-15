@@ -8,7 +8,8 @@ from ..utility.decorator import retry
 
 from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.firefox.options import Options
+from selenium.webdriver.firefox.options import Options as FirefoxOptions
+from selenium.webdriver.firefox.service import Service as FirefoxService
 from selenium.common.exceptions import (
     WebDriverException,
     NoSuchWindowException,
@@ -22,23 +23,75 @@ from urllib.error import URLError
 import socket
 from typing import Tuple, Any
 import time
+import os
 
 
 # SELENIUM
+# ---> GEN2
 def setup_browser(
-    browser: str = "firefox", explicit_wait_seconds: int = 10
+    browser: str = "firefox",
+    explicit_wait_seconds: int = 10,
+    headless: bool = True,
+    remote_env: str = "DOCKER_ENV",
 ) -> Tuple[Any, Any]:
-    options = Options()
-    # choose browser
-    if browser == "firefox":
-        options.binary_location = r"C:\Program Files\Mozilla Firefox\firefox.exe"
-        browser_object = webdriver.Firefox(options=options)
+    # Check for the Docker environment
+    in_docker = os.getenv(remote_env) is not None
 
-    wait_object = WebDriverWait(
-        browser_object, explicit_wait_seconds
-    )  # set up explicit waits
+    # Setup for Firefox
+    if browser == "firefox":
+        options = webdriver.FirefoxOptions()
+
+        # If running in headless mode
+        if headless:
+            options.add_argument("--headless")
+
+        # Path to Firefox binary in docker
+        if in_docker:
+            options.binary_location = "/usr/bin/firefox"
+            service_log_path = "/app/geckodriver.log"
+        else:
+            options.binary_location = r"C:\Program Files\Mozilla Firefox\firefox.exe"
+            service_log_path = None
+
+        browser_object = webdriver.Firefox(
+            options=options, service=FirefoxService(log_path=service_log_path)
+        )
+
+    else:
+        raise ValueError(f"{browser} browser is not available. Please use Firefox.")
+
+    wait_object = WebDriverWait(browser_object, explicit_wait_seconds)
 
     return browser_object, wait_object
+
+
+# ---> GEN1
+# def setup_browser(
+#     browser: str = "firefox",
+#     explicit_wait_seconds: int = 10,
+#     headless=True,
+#     remote_env="DOCKER_ENV",
+# ) -> Tuple[Any, Any]:
+#     options = Options()
+
+#     if headless:
+#         pass  # implement
+
+#     if os.getenv(remote_env) is None:
+#         pass  # implement
+
+#     # choose browser
+#     if browser == "firefox":
+#         options.binary_location = r"C:\Program Files\Mozilla Firefox\firefox.exe"
+#         browser_object = webdriver.Firefox(options=options)
+#     else:
+#         logger.error(f"{browser} browser is not available. Please use Firefox.")
+
+#     wait_object = WebDriverWait(
+#         browser_object, explicit_wait_seconds
+#     )  # set up explicit waits
+
+#     return browser_object, wait_object
 
 
 @retry(
