@@ -20,8 +20,10 @@ def load_settings(
     # Initialize an empty dictionary for secrets
     secrets_dict = {}
 
+    in_docker = os.getenv(remote_env) is not None
+
     try:
-        if os.getenv(remote_env) is None:
+        if in_docker:
             # Get directory of the main script
             main_script_dir = os.path.dirname(os.path.abspath(sys.argv[0]))
             if dotenv_path:
