@@ -3,7 +3,7 @@ from ..utility.logger import LOGGER_NAME
 
 logger = logging.getLogger(LOGGER_NAME)
 
-import sys, subprocess
+import sys, subprocess, platform
 
 from termcolor import colored
 
@@ -46,3 +46,9 @@ def colorize(text, color="yellow", background=None, style=None):
 
 def get_variable_name(variable):
     return [k for k, v in globals().items() if v is variable][0]
+
+
+def ensure_windows_os():
+    """Ensures that the current OS is Windows. Raises an error otherwise."""
+    if platform.system() != "Windows":
+        raise NotImplementedError("This function is only available on Windows!")

@@ -23,11 +23,7 @@ from .logger import config_logger, LOGGER_NAME
 from .tokenbucket import TokenBucket
 
 from .decorator import retry, time_execution
-from .helper import (
-    get_git_tree,
-    colorize,
-    get_variable_name,
-)
+from .helper import get_git_tree, colorize, get_variable_name, ensure_windows_os
 from .web import (
     check_internet,
     connect_to_vpn,
