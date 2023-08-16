@@ -82,7 +82,7 @@ def setup_browser(
         WebDriverException,
     )
 )
-def get_website(website, selenium_browser, selenium_wait, VPN_REGIONS, proxy):
+def get_website(website, selenium_browser, selenium_wait, VPN_REGIONS=None, proxy=None):
     browser = selenium_browser
     wait = selenium_wait
     try:
