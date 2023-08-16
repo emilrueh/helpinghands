@@ -82,11 +82,11 @@ def setup_browser(
         WebDriverException,
     )
 )
-def get_website(website, selenium_browser, selenium_wait, VPN_REGIONS):
+def get_website(website, selenium_browser, selenium_wait, VPN_REGIONS, proxy):
     browser = selenium_browser
     wait = selenium_wait
     try:
-        browser.get(website)  # open website
+        browser.get(website)  # <= open website
     except (NoSuchWindowException, InvalidSessionIdException) as d:
         logger.warning(d)
         if browser:
@@ -97,8 +97,11 @@ def get_website(website, selenium_browser, selenium_wait, VPN_REGIONS):
         logger.warning(e)
         has_internet = check_internet("www.google.com")  # check internet
         if has_internet:
-            logger.warning(f"{e} connecting to NordVPN...")
-            connect_to_vpn(VPN_REGIONS)  # connecting to NordVPN
+            if VPN_REGIONS:
+                logger.warning(f"{e} connecting to NordVPN...")
+                connect_to_vpn(VPN_REGIONS)  # connecting to NordVPN
+            if proxy:
+                rotate_ip(browser, proxy)
             raise
         else:
             raise ConnectionError  # no internet
