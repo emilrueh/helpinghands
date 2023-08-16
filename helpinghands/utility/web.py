@@ -110,22 +110,20 @@ def get_website(website, selenium_browser, selenium_wait, VPN_REGIONS, proxy):
 
 # PROXY
 def setup_proxy_brightdata(
-    brightdata_host: str,
-    brightdata_port: int,
-    brightdata_username: str,
-    brightdata_password: str,
+    host: str,
+    port: int,
+    username: str,
+    password: str,
 ) -> Proxy:
-    if not all(
-        [brightdata_host, brightdata_port, brightdata_username, brightdata_password]
-    ):
+    if not all([host, port, username, password]):
         raise ValueError("All BrightData proxy details must be provided.")
 
     proxy_config = {
-        "httpProxy": f"{brightdata_host}:{brightdata_port}",
-        "sslProxy": f"{brightdata_host}:{brightdata_port}",
-        "ftpProxy": f"{brightdata_host}:{brightdata_port}",
-        "socksUsername": brightdata_username,
-        "socksPassword": brightdata_password,
+        "httpProxy": f"{host}:{port}",
+        "sslProxy": f"{host}:{port}",
+        "ftpProxy": f"{host}:{port}",
+        "socksUsername": username,
+        "socksPassword": password,
         "proxyType": ProxyType.MANUAL,
     }
 
