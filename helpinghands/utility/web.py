@@ -155,7 +155,8 @@ def make_soup(browser, new_soup=True, do_print=True):
 
 @retry(URLError, "simple")
 def connect_to_vpn(country_list, use_env_credentials=False):
-    use_settings_file = 0
+    logger.info(f"use_env_credentials = {use_env_credentials}")
+    use_settings_file = None
     if use_env_credentials:
         logger.info(f"For NordVPN the OS name is: {os.name}")
         # if os.name == "posix":  # Ensure it's a Linux environment
