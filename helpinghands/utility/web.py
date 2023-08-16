@@ -167,10 +167,25 @@ def connect_to_vpn(country_list, use_env_credentials=False):
             logger.error("NordVPN credentials not found in environment variables.")
             return None
 
+        current_directory = os.getcwd()
+        logger.info(f"Current working directory: {current_directory}")
+
+        nordvpn_settings_path = "/app/nordvpn_settings.txt"
         # Save the credentials to nordvpn_settings.txt
         credentials = {"opsys": "Linux", "credentials": [[username], [password]]}
-        with open("nordvpn_settings.txt", "w") as f:
+        with open(nordvpn_settings_path, "w") as f:
             f.write(str(credentials))
+
+        logger.info(f"Written credentials to nordvpn_settings.txt: {credentials}")
+
+        with open(nordvpn_settings_path, "r") as f:
+            file_content = f.read()
+        logger.info(f"Contents of nordvpn_settings.txt: {file_content}")
+
+        if os.path.exists("nordvpn_settings.txt"):
+            logger.info("nordvpn_settings.txt exists.")
+        else:
+            logger.warning("nordvpn_settings.txt does not exist.")
 
         use_settings_file = 1
 
