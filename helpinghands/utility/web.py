@@ -157,22 +157,22 @@ def make_soup(browser, new_soup=True, do_print=True):
 def connect_to_vpn(country_list, use_env_credentials=False):
     use_settings_file = 0
     if use_env_credentials:
-        logger.debug(f"OS name is: {os.name}")
-        if os.name == "posix":  # Ensure it's a Linux environment
-            # Get credentials from environment variables
-            username = os.getenv("NORDVPN_USERNAME")
-            password = os.getenv("NORDVPN_PASSWORD")
+        logger.info(f"For NordVPN the OS name is: {os.name}")
+        # if os.name == "posix":  # Ensure it's a Linux environment
+        # Get credentials from environment variables
+        username = os.getenv("NORDVPN_USERNAME")
+        password = os.getenv("NORDVPN_PASSWORD")
 
-            if not username or not password:
-                logger.error("NordVPN credentials not found in environment variables.")
-                return None
+        if not username or not password:
+            logger.error("NordVPN credentials not found in environment variables.")
+            return None
 
-            # Save the credentials to nordvpn_settings.txt
-            credentials = {"opsys": "Linux", "credentials": [[username], [password]]}
-            with open("nordvpn_settings.txt", "w") as f:
-                f.write(str(credentials))
+        # Save the credentials to nordvpn_settings.txt
+        credentials = {"opsys": "Linux", "credentials": [[username], [password]]}
+        with open("nordvpn_settings.txt", "w") as f:
+            f.write(str(credentials))
 
-            use_settings_file = 1
+        use_settings_file = 1
 
     vpn_settings = initialize_VPN(
         stored_settings=use_settings_file, area_input=country_list
