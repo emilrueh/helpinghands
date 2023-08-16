@@ -10,6 +10,11 @@ from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.firefox.options import Options as FirefoxOptions
 from selenium.webdriver.firefox.service import Service as FirefoxService
+from selenium.webdriver.common.proxy import Proxy, ProxyType
+
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions as EC
+
 from selenium.common.exceptions import (
     WebDriverException,
     NoSuchWindowException,
@@ -32,6 +37,7 @@ def setup_browser(
     browser: str = "firefox",
     explicit_wait_seconds: int = 10,
     headless: bool = True,
+    proxy: Proxy = None,
     remote_env: str = "DOCKER_ENV",
 ) -> Tuple[Any, Any]:
     # Check for the Docker environment
@@ -44,7 +50,9 @@ def setup_browser(
         # If running in headless mode
         if headless:
             options.add_argument("--headless")
-
+        # start with or withtout a previously configured proxy
+        if proxy:
+            options.proxy = proxy
         # Path to Firefox binary in docker
         if in_docker:
             options.binary_location = "/usr/bin/firefox"
@@ -60,38 +68,10 @@ def setup_browser(
     else:
         raise ValueError(f"{browser} browser is not available. Please use Firefox.")
 
-    wait_object = WebDriverWait(browser_object, explicit_wait_seconds)
+    if browser_object:
+        wait_object = WebDriverWait(browser_object, explicit_wait_seconds)
 
-    return browser_object, wait_object
-
-
-# ---> GEN1
-# def setup_browser(
-#     browser: str = "firefox",
-#     explicit_wait_seconds: int = 10,
-#     headless=True,
-#     remote_env="DOCKER_ENV",
-# ) -> Tuple[Any, Any]:
-#     options = Options()
-
-#     if headless:
-#         pass  # implement
-
-#     if os.getenv(remote_env) is None:
-#         pass  # implement
-
-#     # choose browser
-#     if browser == "firefox":
-#         options.binary_location = r"C:\Program Files\Mozilla Firefox\firefox.exe"
-#         browser_object = webdriver.Firefox(options=options)
-#     else:
-#         logger.error(f"{browser} browser is not available. Please use Firefox.")
-
-#     wait_object = WebDriverWait(
-#         browser_object, explicit_wait_seconds
-#     )  # set up explicit waits
-
-#     return browser_object, wait_object
+        return browser_object, wait_object
 
 
 @retry(
@@ -123,6 +103,55 @@ def get_website(website, selenium_browser, selenium_wait, VPN_REGIONS):
         else:
             raise ConnectionError  # no internet
     return browser, wait
+
+
+# PROXY
+def setup_proxy_brightdata(
+    brightdata_host: str,
+    brightdata_port: int,
+    brightdata_username: str,
+    brightdata_password: str,
+) -> Proxy:
+    if not all(
+        [brightdata_host, brightdata_port, brightdata_username, brightdata_password]
+    ):
+        raise ValueError("All BrightData proxy details must be provided.")
+
+    proxy_config = {
+        "httpProxy": f"{brightdata_host}:{brightdata_port}",
+        "sslProxy": f"{brightdata_host}:{brightdata_port}",
+        "ftpProxy": f"{brightdata_host}:{brightdata_port}",
+        "socksUsername": brightdata_username,
+        "socksPassword": brightdata_password,
+        "proxyType": ProxyType.MANUAL,
+    }
+
+    return Proxy(proxy_config)
+
+
+# IPs
+def get_current_ip(browser_object):
+    try:
+        browser_object.get("https://httpbin.org/ip")
+        element = WebDriverWait(browser_object, 10).until(
+            EC.presence_of_element_located((By.TAG_NAME, "pre"))
+        )
+        ip_address = element.text.split('"origin": "')[1].split('"')[0]
+        return ip_address
+    except Exception as e:
+        logger.error(f"Failed to fetch IP: {e}")
+        return None
+
+
+def rotate_ip(browser_object, proxy):
+    old_ip = get_current_ip(browser_object)
+    browser_object.quit()
+
+    browser_object = setup_browser(browser="firefox", proxy=proxy)
+    new_ip = get_current_ip(browser_object)
+
+    logger.info(f"Rotated IP from {old_ip} to {new_ip}")
+    return browser_object
 
 
 # BEAUTIFUL SOUP
