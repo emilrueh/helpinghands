@@ -29,6 +29,7 @@ import socket
 from typing import Tuple, Any
 import time
 import os
+import json
 
 
 # SELENIUM
@@ -136,8 +137,8 @@ def get_current_ip(browser_object):
         element = WebDriverWait(browser_object, 10).until(
             EC.presence_of_element_located((By.TAG_NAME, "pre"))
         )
-        ip_address = element.text.split('"origin": "')[1].split('"')[0]
-        return ip_address
+        ip_data = json.loads(element.text)
+        return ip_data["origin"]
     except Exception as e:
         logger.error(f"Failed to fetch IP: {e}")
         return None
