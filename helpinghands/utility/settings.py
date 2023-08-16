@@ -49,7 +49,10 @@ def load_settings(
 
         # Fetch settings path either from the environment or use the default one
         settings_path = os.getenv(dotenv_settings_path, default_settings_path)  # error?
-        logger.debug(f"settings_path = {settings_path}")
+        # printing of the settings_path for debugging but changing to info for docker env
+        logger.info(f"settings_path = {settings_path}") if in_docker else logger.debug(
+            f"settings_path = {settings_path}"
+        )
         # Check if the settings file exists
         if not os.path.exists(settings_path):
             raise FileNotFoundError(f"Settings file not found: {settings_path}")
