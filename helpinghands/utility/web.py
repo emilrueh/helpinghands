@@ -13,6 +13,7 @@ from selenium.webdriver.firefox.service import Service as FirefoxService
 from selenium.webdriver.chrome.options import Options as ChromeOptions
 from selenium.webdriver.chrome.service import Service as ChromeService
 from selenium.webdriver.common.proxy import Proxy, ProxyType
+from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
@@ -90,12 +91,13 @@ def setup_browser(config: WebConfig) -> Tuple[Any, Any]:
     elif browser == "chrome":
         options = ChromeOptions()
         seleniumwire_options = None
-        options.add_argument("--ignore-certificate-errors")  # temporary
+
         if headless:
             options.add_argument("--headless")
         if proxy_config:
             logger.debug(f"Setting proxy options: {proxy_config}")
             seleniumwire_options = setup_proxy_wire(proxy_config=proxy_config)
+
         # Path to Chrome binary in docker (this is only an example, adjust based on your docker setup)
         if in_docker:
             options.binary_location = "/usr/bin/google-chrome"
@@ -106,6 +108,8 @@ def setup_browser(config: WebConfig) -> Tuple[Any, Any]:
                 r"C:\Program Files\Google\Chrome\Application\chrome.exe"
             )
             service_log_path = None
+
+        print(seleniumwire_options)
         browser_object = webdriver.Chrome(
             seleniumwire_options=seleniumwire_options,
             options=options,
