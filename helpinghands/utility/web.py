@@ -90,6 +90,7 @@ def setup_browser(config: WebConfig) -> Tuple[Any, Any]:
     elif browser == "chrome":
         options = ChromeOptions()
         seleniumwire_options = None
+        options.add_argument("--ignore-certificate-errors")  # temporary
         if headless:
             options.add_argument("--headless")
         if proxy_config:
