@@ -89,19 +89,12 @@ def setup_browser(config: WebConfig) -> Tuple[Any, Any]:
     # Setup for Chrome
     elif browser == "chrome":
         options = ChromeOptions()
-        seleniumwire_options = {
-            "verify_ssl": False
-        }  # <-- Start by setting verify_ssl to False
-
+        seleniumwire_options = None
         if headless:
             options.add_argument("--headless")
         if proxy_config:
             logger.debug(f"Setting proxy options: {proxy_config}")
-            proxy_options = setup_proxy_wire(proxy_config=proxy_config)
-            seleniumwire_options.update(
-                proxy_options
-            )  # <-- Merge the proxy settings with the existing options
-
+            seleniumwire_options = setup_proxy_wire(proxy_config=proxy_config)
         # Path to Chrome binary in docker (this is only an example, adjust based on your docker setup)
         if in_docker:
             options.binary_location = "/usr/bin/google-chrome"
@@ -112,7 +105,6 @@ def setup_browser(config: WebConfig) -> Tuple[Any, Any]:
                 r"C:\Program Files\Google\Chrome\Application\chrome.exe"
             )
             service_log_path = None
-
         browser_object = webdriver.Chrome(
             seleniumwire_options=seleniumwire_options,
             options=options,
