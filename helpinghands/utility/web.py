@@ -136,6 +136,7 @@ def get_website(website, selenium_browser, selenium_wait, config: WebConfig):
     browser = selenium_browser
     wait = selenium_wait
     try:
+        logger.info(f"Accessing url: {website}")
         browser.get(website)  # <= open website
     except (NoSuchWindowException, InvalidSessionIdException, WebDriverException) as e:
         logger.warning(f"{type(e).__name__} encountered: {e}")
