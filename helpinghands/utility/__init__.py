@@ -25,10 +25,17 @@ from .tokenbucket import TokenBucket
 from .decorator import retry, time_execution
 from .helper import get_git_tree, colorize, get_variable_name, ensure_windows_os
 from .web import (
-    check_internet,
-    connect_to_vpn,
-    disconnect_from_vpn,
+    WebConfig,
     setup_browser,
     get_website,
+    setup_proxy_simple,
+    setup_proxy_wire,
+    test_proxy,
+    get_original_ip,
+    get_current_ip,
+    rotate_ip,
     make_soup,
+    connect_to_vpn,
+    disconnect_from_vpn,
+    check_internet,
 )
