@@ -109,7 +109,9 @@ def setup_browser(config: WebConfig) -> Tuple[Any, Any]:
         browser_object = webdriver.Chrome(
             seleniumwire_options=seleniumwire_options,
             options=options,
-            service=ChromeService(log_path=service_log_path),
+            service=ChromeService(
+                log_path=service_log_path, service_args=["--verbose"]
+            ),
         )
         time.sleep(1)
     else:
