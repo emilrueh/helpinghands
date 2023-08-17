@@ -1,4 +1,3 @@
-# VPN
 import logging
 from ..utility.logger import LOGGER_NAME
 
@@ -37,39 +36,45 @@ import os
 import requests
 import re
 
+from dataclasses import dataclass
+from typing import Optional, Dict, Any
+
+
+@dataclass
+class WebConfig:
+    browser: str = "chrome"
+    explicit_wait_seconds: int = 10
+    headless: bool = True
+    proxy_config: Optional[Dict[str, str]] = None
+    remote_env: str = "DOCKER_ENV"
+    original_ip: Optional[str] = None
+
 
 # SELENIUM
 # ---> GEN2
 @retry((SessionNotCreatedException, ConnectionResetError), time_mode="simple")
-def setup_browser(
-    browser_config: dict = {
-        "browser": "chrome",
-        "explicit_wait_seconds": 10,
-        "headless": True,
-        "proxy": None,
-        "remote_env": "DOCKER_ENV",
-    }
-) -> Tuple[Any, Any]:
+def setup_browser(config: WebConfig) -> Tuple[Any, Any]:
     # loading config
-    browser = browser_config["browser"]
-    explicit_wait_seconds = browser_config["explicit_wait_seconds"]
-    headless = browser_config["headless"]
-    proxy = browser_config["proxy"]
-    remote_env = browser_config["remote_env"]
+    browser = config.browser
+    explicit_wait_seconds = config.explicit_wait_seconds
+    headless = config.headless
+    proxy_config = config.proxy_config
+    remote_env = config.remote_env
 
     # Check for the Docker environment
     in_docker = os.getenv(remote_env) is not None
 
     # Setup for Firefox
     if browser == "firefox":
+        logger.warning(f"Firefox is deprecated. Please use Chrome instead.")
         options = webdriver.FirefoxOptions()
 
         # If running in headless mode
         if headless:
             options.add_argument("--headless")
         # start with or without a previously configured proxy
-        if proxy:
-            options.proxy = proxy
+        if proxy_config:
+            options.proxy = proxy_config
         # Path to Firefox binary in docker
         if in_docker:
             options.binary_location = "/usr/bin/firefox"
@@ -87,9 +92,9 @@ def setup_browser(
         seleniumwire_options = None
         if headless:
             options.add_argument("--headless")
-        if proxy:
-            print(f"Setting proxy options: {proxy}")
-            seleniumwire_options = proxy
+        if proxy_config:
+            logger.debug(f"Setting proxy options: {proxy_config}")
+            seleniumwire_options = setup_proxy_wire(proxy_config=proxy_config)
         # Path to Chrome binary in docker (this is only an example, adjust based on your docker setup)
         if in_docker:
             options.binary_location = "/usr/bin/google-chrome"
@@ -108,11 +113,13 @@ def setup_browser(
         )
         time.sleep(1)
     else:
-        raise ValueError(f"{browser} browser is not available. Please use Firefox.")
+        raise ValueError(
+            f"{browser} browser is not available. Please use Firefox or Chrome."
+        )
 
     if browser_object:
         wait_object = WebDriverWait(browser_object, explicit_wait_seconds)
-        print(f"Current IP: {get_current_ip(browser_object)}")
+        logger.info(f"Current IP: {get_current_ip(browser_object)}")
         return browser_object, wait_object
 
 
@@ -125,9 +132,7 @@ def setup_browser(
     ),
     time_mode="advanced",
 )
-def get_website(
-    website, selenium_browser, selenium_wait, browser_config, proxy_config, original_ip
-):
+def get_website(website, selenium_browser, selenium_wait, config: WebConfig):
     browser = selenium_browser
     wait = selenium_wait
     try:
@@ -136,9 +141,7 @@ def get_website(
         logger.warning(f"{type(e).__name__} encountered: {e}")
         has_internet = check_internet()
         if has_internet:
-            browser, wait = rotate_ip(
-                browser, browser_config, proxy_config, original_ip
-            )
+            browser, wait = rotate_ip(browser_object=browser, config=config)
             raise
         else:
             raise ConnectionError(f"No internet connection")
@@ -146,7 +149,7 @@ def get_website(
 
 
 # PROXY
-# firefox
+# firefox (deprecated)
 def setup_proxy_simple(host: str, username: str, password: str) -> Proxy:
     if not all([host, username, password]):
         raise ValueError("All BrightData proxy details must be provided.")
@@ -186,6 +189,25 @@ def setup_proxy_wire(
     return proxy
 
 
+# manual test
+def test_proxy(proxy_host, proxy_user, proxy_pass):
+    proxies = {
+        "http": f"http://{proxy_user}:{proxy_pass}@{proxy_host}",
+        "https": f"https://{proxy_user}:{proxy_pass}@{proxy_host}",
+    }
+    url = "https://lumtest.com/myip.json"
+    try:
+        response = requests.get(url, proxies=proxies, timeout=10)
+        response.raise_for_status()  # This will raise an HTTPError if the HTTP request returned an unsuccessful status code
+
+        data = response.json()
+        print(f"Response from the server: {data}")
+        return True
+    except requests.RequestException as e:
+        print(f"Failed to connect using the proxy. Error: {e}")
+        return False
+
+
 # IPs
 def get_original_ip():
     try:
@@ -197,52 +219,50 @@ def get_original_ip():
         return None
 
 
-def get_current_ip(browser_object):
-    try:
-        browser_object.get("https://httpbin.org/ip")
+@retry(ValueError, "simple")
+def get_current_ip(
+    browser_object,
+    IP_SERVICES: list = [
+        "https://api.ipify.org?format=json",
+        "https://icanhazip.com",
+        "http://checkip.amazonaws.com",
+        "http://ipinfo.io/ip",
+        "https://httpbin.org/ip",
+    ],
+):
+    for service in IP_SERVICES:
+        browser_object.get(service)
+        raw_content = browser_object.page_source.strip()
 
-        # Obtain the raw page source
-        raw_content = browser_object.page_source
+        # If using ipify, we'll expect a JSON response
+        if service == "https://api.ipify.org?format=json":
+            match = re.search(r'{"ip":"(.*?)"', raw_content)
+        else:
+            # For other services, just extract the IP from the page content
+            match = re.search(r"(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})", raw_content)
 
-        # Look for the IP address in the raw content using a regular expression
-        match = re.search(r'"origin": "(.*?)"', raw_content)
         if match:
             ip_address = match.group(1)
             return ip_address
-        else:
-            raise ValueError("Failed to extract IP address from page source")
-    except Exception as e:
-        logger.error(f"Failed to fetch IP: {e}")
-        return None
+
+    # If the function hasn't returned by this point, raise an error to @retry
+    raise ValueError(f"Failed to fetch IP from either service")
 
 
-def rotate_ip(browser_object, browser_config, proxy_config, original_ip):
+@retry(RuntimeError, "medium")
+def rotate_ip(browser_object, config: WebConfig):
     old_ip = get_current_ip(browser_object)
 
-    attempts = 0
-    while attempts < 3:
-        attempts += 1
+    if browser_object:
+        browser_object.quit()
+    browser_object, wait_object = setup_browser(config=config)
+    new_ip = get_current_ip(browser_object=browser_object)
 
-        if browser_object:
-            browser_object.quit()
-        proxy = setup_proxy_wire(proxy_config=proxy_config)
-        browser_config["proxy"] = proxy
-        browser_object, wait_object = setup_browser(browser_config=browser_config)
-        new_ip = get_current_ip(browser_object)
-
-        if old_ip != new_ip != original_ip:
-            break
-        else:
-            print(
-                f"IPs didn't change or reverted to original IP. Trying again with attempt {attempts}..."
-            )
-    if attempts == 3 and (old_ip == new_ip or new_ip == original_ip):
-        raise Exception("Failed to change IP after 3 attempts.")
-    else:
-        print(
-            f"Rotated IP from {old_ip} to {new_ip} {f'after {attempts} attempts' if attempts > 1 else ''}"
-        )
+    if old_ip != new_ip != config.original_ip:
+        print(f"Rotated IP: {old_ip} to {new_ip}")
         return browser_object, wait_object
+    else:
+        raise RuntimeError("Failed to change IP. Trying again...")
 
 
 # BEAUTIFUL SOUP
