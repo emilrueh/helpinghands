@@ -170,7 +170,8 @@ def setup_proxy_simple(host: str, username: str, password: str) -> Proxy:
 
 # chrome
 def setup_proxy_wire(
-    proxy_config: dict = {"host": None, "username": None, "password": None}
+    proxy_config: dict = {"host": None, "username": None, "password": None},
+    for_selenium: bool = True,
 ) -> Proxy:
     host = proxy_config["host"]
     username = proxy_config["username"]
@@ -180,12 +181,12 @@ def setup_proxy_wire(
         raise ValueError("All proxy details must be provided.")
 
     proxy = {
-        "proxy": {
-            "http": f"http://{username}:{password}@{host}",
-            "https": f"http://{username}:{password}@{host}",
-        }
+        "http": f"http://{username}:{password}@{host}",
+        "https": f"http://{username}:{password}@{host}",
     }
 
+    if for_selenium:
+        return {"proxy": proxy}
     return proxy
 
 
@@ -259,7 +260,7 @@ def rotate_ip(browser_object, config: WebConfig):
     new_ip = get_current_ip(browser_object=browser_object)
 
     if old_ip != new_ip != config.original_ip:
-        print(f"Rotated IP: {old_ip} to {new_ip}")
+        print(f"Rotated IP: {old_ip} -> {new_ip}")
         return browser_object, wait_object
     else:
         raise RuntimeError("Failed to change IP. Trying again...")
