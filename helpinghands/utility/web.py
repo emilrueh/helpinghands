@@ -53,36 +53,21 @@ class WebConfig:
     original_ip: Optional[str] = None
 
 
-def get_chrome_version():
-    try:
-        result = subprocess.run(
-            ["/usr/bin/google-chrome", "--version"], stdout=subprocess.PIPE
-        )
-        return result.stdout.decode("utf-8").strip()
-    except Exception as e:
-        return f"Error: {e}"
+def check_versions_and_paths():
+    chrome_version = subprocess.getoutput("google-chrome --version")
+    chrome_path = subprocess.getoutput("which google-chrome")
 
+    chromedriver_version = subprocess.getoutput("chromedriver --version")
+    chromedriver_path = subprocess.getoutput("which chromedriver")
 
-def get_chromedriver_version():
-    try:
-        result = subprocess.run(
-            ["/usr/bin/chromedriver", "--version"], stdout=subprocess.PIPE
-        )
-        return result.stdout.decode("utf-8").strip()
-    except Exception as e:
-        return f"Error: {e}"
+    return (chrome_version, chrome_path, chromedriver_version, chromedriver_path)
 
 
 # SELENIUM
 # ---> GEN2
 @retry((SessionNotCreatedException, ConnectionResetError), time_mode="simple")
 def setup_browser(config: WebConfig) -> Tuple[Any, Any]:
-    print(
-        get_chrome_version()
-    )  # Should print something like: "Google Chrome 91.0.4472.114"
-    print(
-        get_chromedriver_version()
-    )  # Should print something like: "ChromeDriver 91.0.4472.101"
+    logger.debug(check_versions_and_paths())
 
     # loading config
     browser = config.browser
@@ -122,7 +107,7 @@ def setup_browser(config: WebConfig) -> Tuple[Any, Any]:
         seleniumwire_options = None
 
         if headless or in_docker:
-            print("Settings headless mode...")
+            logger.debug("Settings headless mode...")
             options.add_argument("--headless")
             options.add_argument("--no-sandbox")  # Bypass OS-level sandbox
             options.add_argument(
