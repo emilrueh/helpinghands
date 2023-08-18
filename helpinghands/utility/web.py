@@ -106,6 +106,7 @@ def setup_browser(config: WebConfig) -> Tuple[Any, Any]:
         seleniumwire_options = None
 
         if headless or in_docker:
+            print("Settings headless mode...")
             options.add_argument("--headless")
             options.add_argument("--no-sandbox")  # Bypass OS-level sandbox
             options.add_argument(
