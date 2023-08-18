@@ -94,6 +94,10 @@ def setup_browser(config: WebConfig) -> Tuple[Any, Any]:
 
         if headless:
             options.add_argument("--headless")
+            options.add_argument("--no-sandbox")  # Bypass OS-level sandbox
+            options.add_argument(
+                "--disable-dev-shm-usage"  # Overcome limited resource issues in Docker
+            )
         if proxy_config:
             logger.debug(f"Setting proxy options: {proxy_config}")
             seleniumwire_options = setup_proxy_wire(proxy_config=proxy_config)
