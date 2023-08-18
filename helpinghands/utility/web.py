@@ -53,20 +53,36 @@ class WebConfig:
     original_ip: Optional[str] = None
 
 
-def check_versions():
-    chrome_version = subprocess.getoutput("google-chrome --version")
-    chromedriver_version = subprocess.getoutput("chromedriver --version")
+def get_chrome_version():
+    try:
+        result = subprocess.run(
+            ["/usr/bin/google-chrome", "--version"], stdout=subprocess.PIPE
+        )
+        return result.stdout.decode("utf-8").strip()
+    except Exception as e:
+        return f"Error: {e}"
 
-    return chrome_version, chromedriver_version
+
+def get_chromedriver_version():
+    try:
+        result = subprocess.run(
+            ["/usr/bin/chromedriver", "--version"], stdout=subprocess.PIPE
+        )
+        return result.stdout.decode("utf-8").strip()
+    except Exception as e:
+        return f"Error: {e}"
 
 
 # SELENIUM
 # ---> GEN2
 @retry((SessionNotCreatedException, ConnectionResetError), time_mode="simple")
 def setup_browser(config: WebConfig) -> Tuple[Any, Any]:
-    chrome_version, chromedriver_version = check_versions()
-    print("chrome", chrome_version)
-    print("driver", chromedriver_version)
+    print(
+        get_chrome_version()
+    )  # Should print something like: "Google Chrome 91.0.4472.114"
+    print(
+        get_chromedriver_version()
+    )  # Should print something like: "ChromeDriver 91.0.4472.101"
 
     # loading config
     browser = config.browser
@@ -118,7 +134,7 @@ def setup_browser(config: WebConfig) -> Tuple[Any, Any]:
 
         # Path to Chrome binary in docker (this is only an example, adjust based on your docker setup)
         if in_docker:
-            binary_location = "/usr/bin/google-chrome"
+            binary_location = "/usr/bin/chromedriver"
             service_log_path = "/app/data/chromedriver.log"
         else:
             # Default path to Chrome binary on most systems; adjust if yours is different
