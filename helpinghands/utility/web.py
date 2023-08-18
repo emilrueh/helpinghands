@@ -104,7 +104,7 @@ def setup_browser(config: WebConfig) -> Tuple[Any, Any]:
 
         # Path to Chrome binary in docker (this is only an example, adjust based on your docker setup)
         if in_docker:
-            options.binary_location = "/usr/bin/google-chrome"
+            # options.binary_location = "/usr/bin/google-chrome"
             service_log_path = "/app/data/chromedriver.log"
         else:
             # Default path to Chrome binary on most systems; adjust if yours is different
