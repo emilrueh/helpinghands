@@ -40,6 +40,8 @@ import re
 from dataclasses import dataclass
 from typing import Optional, Dict, Any
 
+import subprocess
+
 
 @dataclass
 class WebConfig:
@@ -51,10 +53,21 @@ class WebConfig:
     original_ip: Optional[str] = None
 
 
+def check_versions():
+    chrome_version = subprocess.getoutput("google-chrome --version")
+    chromedriver_version = subprocess.getoutput("chromedriver --version")
+
+    return chrome_version, chromedriver_version
+
+
 # SELENIUM
 # ---> GEN2
 @retry((SessionNotCreatedException, ConnectionResetError), time_mode="simple")
 def setup_browser(config: WebConfig) -> Tuple[Any, Any]:
+    chrome_version, chromedriver_version = check_versions()
+    print("chrome", chrome_version)
+    print("driver", chromedriver_version)
+
     # loading config
     browser = config.browser
     explicit_wait_seconds = config.explicit_wait_seconds
@@ -104,13 +117,11 @@ def setup_browser(config: WebConfig) -> Tuple[Any, Any]:
 
         # Path to Chrome binary in docker (this is only an example, adjust based on your docker setup)
         if in_docker:
-            # options.binary_location = "/usr/bin/google-chrome"
+            binary_location = "/usr/bin/google-chrome"
             service_log_path = "/app/data/chromedriver.log"
         else:
             # Default path to Chrome binary on most systems; adjust if yours is different
-            options.binary_location = (
-                r"C:\Program Files\Google\Chrome\Application\chrome.exe"
-            )
+            binary_location = r"C:\Program Files\Google\Chrome\Application\chrome.exe"
             service_log_path = None
 
         print(seleniumwire_options)
@@ -118,7 +129,9 @@ def setup_browser(config: WebConfig) -> Tuple[Any, Any]:
             seleniumwire_options=seleniumwire_options,
             options=options,
             service=ChromeService(
-                log_path=service_log_path, service_args=["--verbose"]
+                log_path=service_log_path,
+                service_args=["--verbose"],
+                executable_path=binary_location,
             ),
         )
         time.sleep(1)
