@@ -14,6 +14,7 @@ import numpy as np
 from langdetect import detect
 from collections import Counter
 import re
+import textwrap
 
 from termcolor import colored
 
@@ -214,38 +215,6 @@ def delete_duplicates(data, columns_to_compare=None):
     df_no_duplicates = data.drop_duplicates(subset=columns_to_compare, keep="first")
 
     return df_no_duplicates  # return the DataFrame object
-
-
-# keywords, categories, tags
-# def delete_duplicates_add_keywords(data, columns_to_compare=None):
-#     if isinstance(data, str):  # if the input is a file path
-#         data = pd.read_csv(data)
-
-#     original_data = data.copy()  # copy the original data to compare later
-
-#     logger.debug(colored(f"DataFrame columns: {data.columns}", "yellow"))
-#     logger.debug(colored(f"Columns to compare: {columns_to_compare}", "yellow"))
-
-#     # Convert 'Keyword' to a set, which removes duplicates within each group
-#     data["Keyword"] = data.groupby(columns_to_compare)["Keyword"].transform(
-#         lambda x: ",".join(set(x.str.split(",").sum()))
-#     )
-
-#     # Keep one instance of each event with the same name, remove others
-#     df_no_duplicates = data.drop_duplicates(subset=columns_to_compare, keep="first")
-
-#     # Print the indexes and keywords
-#     added_keywords_rows = df_no_duplicates[
-#         df_no_duplicates["Keyword"].str.contains(",", na=False)
-#     ]
-#     indexes_and_keywords = added_keywords_rows[["Keyword"]]
-#     logger.info("Rows that gained keywords:")
-#     with pd.option_context("display.max_rows", None, "display.max_columns", None):
-#         logger.debug(indexes_and_keywords)
-
-#     logger.info(f"Total rows that gained keywords: {indexes_and_keywords.shape[0]}")
-
-#     return df_no_duplicates
 
 
 def delete_duplicates_add_keywords(data, columns_to_compare=None):
@@ -545,3 +514,39 @@ def manipulate_csv_data(
         )
 
     return df
+
+
+# TXT
+def insert_newlines(string, every=64):
+    logging.info(f"Formatted string.")
+    return "\n".join(textwrap.wrap(string, every))
+
+
+def append_to_or_create_txt_file(input_text, output_file_path):
+    # Try to read the current contents of the file
+    try:
+        with open(output_file_path, "r") as f:
+            current_contents = f.read()
+    except IOError:
+        # If the file doesn't exist, create it by opening it in write mode
+        with open(output_file_path, "w") as f:
+            f.write(input_text)
+            current_contents = ""
+
+    # Append the output to the file only if it's not already present
+    if input_text not in current_contents:
+        with open(output_file_path, "a") as f:
+            if current_contents == "":
+                f.write(input_text)
+            else:
+                # Append a couple of newline characters before the new output
+                # to ensure there's some space between it and the previous content
+                f.write("\n\n" + input_text)
+
+
+def open_txt_file(txt_file_path):
+    try:
+        with open(txt_file_path, "r") as f:
+            return f.read()
+    except:
+        return print(f"Failed to open .txt file at path: {txt_file_path}")
