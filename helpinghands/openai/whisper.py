@@ -8,7 +8,7 @@ import requests, time
 import openai
 
 
-def call_whisper(api_key, action, mp3_path):
+def call_whisper(api_key, mp3_path, action="transcribe"):
     """
     Could need some love regarding other whisper functions
     and the opening of any kind of path format or taking a
