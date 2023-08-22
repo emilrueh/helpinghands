@@ -2,14 +2,13 @@ from setuptools import setup, find_packages
 
 setup(
     name="helpinghands",
-    version="0.1.1",
+    version="0.2.0",
     packages=find_packages(),
     author="Emil Rühmland",
-    # author_email="emilrueh@googlemail.com",
     description="Utility functions for personal projects including data manipulation, setting up settings and logging, and OpenAI API functions.",
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
-    # url="https://github.com/emilrueh/projutils",
+    url="https://github.com/emilrueh/helpinghands",
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
@@ -51,6 +50,7 @@ setup(
         "random-user-agent==1.0.1",
         "requests==2.31.0",
         "selenium==4.10.0",
+        "selenium_wire==5.1.0",
         "six==1.16.0",
         "sniffio==1.3.0",
         "sortedcontainers==2.4.0",
