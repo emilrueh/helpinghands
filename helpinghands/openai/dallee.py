@@ -66,12 +66,14 @@ def generate_image(
     if response.status_code != 200 or "data" not in response_json:
         if (
             "error" in response_json
-            and response_json["error"]["type"] == "content_policy_violation"
+            and response_json["error"]["code"] == "content_policy_violation"
         ):
             logger.error(f"Content policy violation with prompt: {prompt}")
         else:
             logger.error(f"Request rejected: {response.text}")
         return ["No image generated"]
+    elif response.status_code == 200:
+        logger.info(f"Successful request with prompt: {prompt}")
 
     image_urls = [data["url"] for data in response_json["data"]]
 
@@ -131,7 +133,6 @@ def dallee_loop(
 
         # Concatenate input columns to form the prompt
         prompt = " ".join(str(row[col]) for col in columns_for_input)
-        logger.debug(f"{i} - {prompt}")
 
         image_urls_or_filepaths = generate_image(
             api_key,
