@@ -119,12 +119,17 @@ def extract_number(price):
 
 
 # JSON
-def json_save(data, filename):
-    # backup
-    json_data = json.dumps(data)
-    # Save the JSON string to a file
+def json_save(data, filename, append=False):
+    # If appending, load existing data and update it
+    if append and os.path.exists(filename):
+        with open(filename, "r") as file:
+            existing_data = set(json.load(file))
+        existing_data.update(data)
+        data = list(existing_data)
+
+    # Save the data
     with open(filename, "w") as file:
-        file.write(json_data)
+        json.dump(data, file)
 
 
 def json_read(json_filename):
