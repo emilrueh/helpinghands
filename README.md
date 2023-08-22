@@ -33,24 +33,11 @@ The `utility` module provides various utility functions and submodules.
 
 #### settings
 - `load_settings()`: Loads settings.
-  - **Parameters**: The function takes parameters to define paths for loading settings, secrets keys, and other environmental settings.
-  - **Docker Environment Check**: It checks if the code is running inside a Docker container.
-  - **Environment Variables Loading**: If not in Docker, it loads environment variables from a .env file, if present.
-  - **Secrets Loading**: If secret keys are provided, it fetches them from the environment variables.
-  - **Settings Loading**: The path to the settings file is determined, either from an environment variable or a default path. The settings are then read from the specified JSON file.
-  - **Merge Settings and Secrets**: The settings and secrets are combined into a single dictionary.
-  - **Error Handling**: Various error conditions, like JSON decoding errors or unexpected exceptions, are handled, logged, and raised.
-  - **Returns**: The combined settings dictionary is returned.
+  - The function takes parameters to define paths for loading settings, secrets keys, and other environmental settings.
 
 #### logger
 - `config_logger()`: Configures the logger.
-  - **Parameters**: The function accepts multiple parameters that define logger characteristics such as log levels, formats, and file names. Sensible default values are provided for most parameters.
-  - **Logger Configuration**: The function starts by defining a logger using Python's built-in logging module, based on the name provided.
-  - **Print Statements**: A series of print statements are used to notify the user of the logging behavior.
-  - **File Logging**: If file logging is enabled, the function creates a file handler to write log messages to a file. This includes creating the necessary directory.
-  - **Console Logging**: If console logging is enabled, a stream handler is created to send log messages to the console.
-  - **Setting Levels**: The function sets the logging levels for the file, console, and root loggers based on the inputs.
-  - **Returns**: The configured logger object is returned.
+  - The function accepts multiple parameters that define logger characteristics such as log levels, formats, and file names. Sensible default values are provided for most parameters.
 
 #### tokenbucket
 - `TokenBucket`: Implements a token bucket algorithm.
@@ -123,5 +110,3 @@ This project serves as a demonstration of and it is not intended for cloning or 
 
 ## Author
 [Emil Rühmland](https://github.com/emilrueh)
-
-This revised README includes all the functions, classes, and methods from the provided `init.py` files, categorized under the corresponding modules and submodules. It also adds a note about potential disability for certain modules due to missing dependencies and a link to the GitHub profile from the `setup.py`. Feel free to modify or further refine this content as needed!
