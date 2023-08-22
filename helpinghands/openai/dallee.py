@@ -131,6 +131,7 @@ def dallee_loop(
 
         # Concatenate input columns to form the prompt
         prompt = " ".join(str(row[col]) for col in columns_for_input)
+        logger.debug(f"{i} - {prompt}")
 
         image_urls_or_filepaths = generate_image(
             api_key,
