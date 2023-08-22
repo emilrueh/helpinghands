@@ -68,6 +68,12 @@ def dallee_loop(
     data,
     columns_for_input,
     column_for_output,
+    what="event",
+    attributes=[
+        "intricate detail",
+        "high quality",
+        "cinematic lighting",
+    ],
     num_images=1,
     image_size="1024x1024",
     file_name=None,
@@ -98,7 +104,7 @@ def dallee_loop(
             continue
 
         # Concatenate input columns to form the prompt
-        prompt = " ".join(str(row[col]) for col in columns_for_input)
+        prompt = f'{" ".join(str(row[col]) for col in columns_for_input)} {what}, {", ".join(attributes)}'
 
         image_urls_or_filepaths = generate_image(
             api_key,
