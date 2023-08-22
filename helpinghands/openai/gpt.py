@@ -204,7 +204,7 @@ def gpt_loop(
                 best_output = best_output.replace(string, "")
 
         row[column_for_output] = best_output
-        logger.info(f"Event: {i + 1} | Index: {i}\n{row[column_for_output]}")
+        logger.info(f"Entry: {i + 1} | Index: {i}\n{row[column_for_output]}")
 
         # Save DataFrame every 100 rows
         if path_to_file is not None and i % 100 == 0:
