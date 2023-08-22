@@ -23,6 +23,7 @@ from selenium.common.exceptions import (
     NoSuchWindowException,
     InvalidSessionIdException,
     SessionNotCreatedException,
+    TimeoutException,
 )
 
 from bs4 import BeautifulSoup
@@ -174,15 +175,26 @@ def setup_browser(config: WebConfig) -> Tuple[Any, Any]:
         InvalidSessionIdException,
         ConnectionError,
         WebDriverException,
+        TimeoutException,
     ),
     time_mode="advanced",
 )
-def get_website(website, selenium_browser, selenium_wait, config: WebConfig):
+def get_website(
+    website,
+    selenium_browser,
+    selenium_wait,
+    config: WebConfig,
+    page_timeout=60,  # test this first
+):
     browser = selenium_browser
     wait = selenium_wait
+    browser.set_page_load_timeout(page_timeout)  # test this first
     try:
         logger.info(f"Accessing url: {website}")
         browser.get(website)  # <= open website
+    except TimeoutException as e:
+        logger.warning(f"Page took too long to load: {e}\n")
+        raise
     except (NoSuchWindowException, InvalidSessionIdException, WebDriverException) as e:
         logger.warning(f"{type(e).__name__} encountered: {e}")
         has_internet = check_internet()
