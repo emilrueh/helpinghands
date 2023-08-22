@@ -52,8 +52,23 @@ The `utility` module provides various utility functions and submodules.
 - `get_variable_name()`: Gets the name of a variable as a string.
 - `ensure_windows_os()`: Ensures the OS is Windows.
 
-#### web (Note: may be disabled due to missing dependencies)
-- `WebConfig`, `setup_browser`, `get_website`, `setup_proxy_simple`, `setup_proxy_wire`, `test_proxy`, `get_original_ip`, `get_current_ip`, `rotate_ip`, `make_soup`, `connect_to_vpn`, `disconnect_from_vpn`, `check_internet`
+#### web
+
+The `web` module provides various web-related functions (Note: may be disabled due to missing dependencies).
+
+- `WebConfig()`: Class for configuring web settings.
+- `setup_browser()`: Sets up the browser.
+- `get_website()`: Retrieves a website.
+- `setup_proxy_simple()`: Sets up a simple proxy.
+- `setup_proxy_wire()`: Sets up a selenium-wire proxy.
+- `test_proxy()`: Tests the proxy.
+- `get_original_ip()`: Gets the original IP.
+- `get_current_ip()`: Gets the current IP.
+- `rotate_ip()`: Rotates the IP.
+- `make_soup()`: Makes BeautifulSoup object.
+- `connect_to_vpn()`: Connects to VPN.
+- `disconnect_from_vpn()`: Disconnects from VPN.
+- `check_internet()`: Checks the internet connection.
 
 ### openai
 
@@ -66,14 +81,21 @@ The `openai` module provides functions for working with OpenAI APIs.
 - `generate_image()`: Generates an image using the DALLE model.
 - `dallee_loop()`: Loops the DALLE model image generation.
 
-### audio (Note: may be disabled due to missing dependencies)
+### audio
 
-The `audio` module provides functions for working with audio files.
+The `audio` module provides functions for working with audio files (Note: may be disabled due to missing dependencies).
 
-#### Functions
-- `uhoh()`, `criterr()`, `warning()`, `success()`: Play sounds.
+#### Sounds
+- `uhoh()`: Plays "uh-oh" sound.
+- `criterr()`: Plays critical error sound.
+- `warning()`: Plays warning sound.
+- `success()`: Plays success sound.
+
+#### Conversion
 - `ogg_to_mp3()`: Converts OGG audio files to MP3 format.
-- `AudioRecorder`: Class for recording audio.
+
+#### Recording
+- `AudioRecorder()`: Class for recording audio.
 
 ---
 
