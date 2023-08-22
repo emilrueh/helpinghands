@@ -1,10 +1,8 @@
-import logging
-from ..utility.logger import LOGGER_NAME
+from ..utility.logger import get_logger
 
-logger = logging.getLogger(LOGGER_NAME)
+logger = get_logger()
 
 import time, requests, pandas as pd
-
 import openai
 
 

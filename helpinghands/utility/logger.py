@@ -7,6 +7,10 @@ from datetime import datetime
 LOGGER_NAME = "global_logger"
 
 
+def get_logger() -> object:
+    return logging.getLogger(LOGGER_NAME)
+
+
 def config_logger(
     name: str = "base_logger:",
     lvl_console: str = "DEBUG",

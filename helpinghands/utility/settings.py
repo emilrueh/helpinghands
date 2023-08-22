@@ -1,7 +1,6 @@
-import logging
-from ..utility.logger import LOGGER_NAME
+from ..utility.logger import get_logger
 
-logger = logging.getLogger(LOGGER_NAME)
+logger = get_logger()
 
 from dotenv import load_dotenv
 import os

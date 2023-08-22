@@ -1,7 +1,6 @@
-import logging
-from ..utility.logger import LOGGER_NAME
+from ..utility.logger import get_logger
 
-logger = logging.getLogger(LOGGER_NAME)
+logger = get_logger()
 
 import pandas as pd
 import json
@@ -15,7 +14,6 @@ from langdetect import detect
 from collections import Counter
 import re
 import textwrap
-
 from termcolor import colored
 
 
@@ -518,7 +516,7 @@ def manipulate_csv_data(
 
 # TXT
 def insert_newlines(string, every=64):
-    logging.info(f"Formatted string.")
+    logger.info(f"Formatted string.")
     return "\n".join(textwrap.wrap(string, every))
 
 

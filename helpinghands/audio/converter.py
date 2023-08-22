@@ -1,8 +1,8 @@
-import logging
+from ..utility.logger import get_logger
+
+logger = get_logger()
 
 from pydub import AudioSegment
-
-logger = logging.getLogger(__name__)
 
 
 def ogg_to_mp3(input_file, output_file):
