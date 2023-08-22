@@ -8,39 +8,6 @@ import pandas as pd
 import os
 
 
-# def generate_image(
-#     api_key, prompt, number=1, size="1024x1024", file_name=None, file_extension=".png"
-# ):
-#     headers = {
-#         "Content-Type": "application/json",
-#         "Authorization": f"Bearer {api_key}",
-#     }
-#     generation_url = "https://api.openai.com/v1/images/generations"
-#     data = {
-#         "prompt": prompt[:1000],
-#         "n": number,
-#         "size": size,
-#     }
-#     response = requests.post(generation_url, headers=headers, json=data)
-#     try:
-#         image_urls = [data["url"] for data in response.json()["data"]]
-#     except KeyError:
-#         logger.error(f"Unexpected response structure: {response.json()}")
-#         return ["No image generated"]
-
-#     if file_name:
-#         for i, image_url in enumerate(image_urls):
-#             image_response = requests.get(image_url)
-#             file_path = f"{file_name}_{i}{file_extension}"
-#             with open(file_path, "wb") as f:
-#                 f.write(image_response.content)
-#                 logger.info(f"Image saved at {file_path}")
-
-#     return image_urls
-
-import os
-
-
 def generate_image(
     api_key,
     prompt,
