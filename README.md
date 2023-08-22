@@ -4,37 +4,11 @@ The HelpingHands library provides various modules for different "every-day" func
 
 ## Modules
 
-### audio
-
-The `audio` module provides functions for working with audio files.
-
-#### Functions
-
-- `uhoh()`: Plays the "uhoh" sound.
-- `criterr()`: Plays the "criterr" sound.
-- `warning()`: Plays the "warning" sound.
-- `success()`: Plays the "success" sound.
-- `ogg_to_mp3()`: Converts OGG audio files to MP3 format.
-- `AudioRecorder()`: Class for recording audio.
-
-### openai
-
-The `openai` module provides functions for working with OpenAI APIs.
-
-#### Functions
-
-- `call_whisper()`: Calls the Whisper API.
-- `call_gpt()`: Calls the GPT API.
-- `gpt_loop()`: Loops the GPT API call.
-- `generate_image()`: Generates an image using the DALLE model.
-- `dallee_loop()`: Loops the DALLE model image generation.
-
 ### utility
 
-The `utility` module provides various utility functions.
+The `utility` module provides various utility functions and submodules.
 
-#### Functions
-
+#### data
 - `get_data_dir()`: Returns the directory for storing data.
 - `backup_data()`: Backs up data to a specified location.
 - `json_save()`: Saves data to a JSON file.
@@ -53,32 +27,74 @@ The `utility` module provides various utility functions.
 - `replace_values()`: Replaces values in a DataFrame.
 - `contains_gmaps()`: Checks if a DataFrame contains Google Maps data.
 - `manipulate_csv_data()`: Manipulates data in a CSV file.
+- `insert_newlines()`: Inserts newlines into text.
+- `append_to_or_create_txt_file()`: Appends to or creates a text file.
+- `open_txt_file()`: Opens a text file.
 
-### Other Modules
+#### settings
+- `load_settings()`: Loads settings.
+  - **Parameters**: The function takes parameters to define paths for loading settings, secrets keys, and other environmental settings.
+  - **Docker Environment Check**: It checks if the code is running inside a Docker container.
+  - **Environment Variables Loading**: If not in Docker, it loads environment variables from a .env file, if present.
+  - **Secrets Loading**: If secret keys are provided, it fetches them from the environment variables.
+  - **Settings Loading**: The path to the settings file is determined, either from an environment variable or a default path. The settings are then read from the specified JSON file.
+  - **Merge Settings and Secrets**: The settings and secrets are combined into a single dictionary.
+  - **Error Handling**: Various error conditions, like JSON decoding errors or unexpected exceptions, are handled, logged, and raised.
+  - **Returns**: The combined settings dictionary is returned.
 
-- `settings`: Provides functions for loading settings.
-- `logger`: Configures the logger for logging purposes.
-- `tokenbucket`: Implements a token bucket algorithm.
+#### logger
+- `config_logger()`: Configures the logger.
+  - **Parameters**: The function accepts multiple parameters that define logger characteristics such as log levels, formats, and file names. Sensible default values are provided for most parameters.
+  - **Logger Configuration**: The function starts by defining a logger using Python's built-in logging module, based on the name provided.
+  - **Print Statements**: A series of print statements are used to notify the user of the logging behavior.
+  - **File Logging**: If file logging is enabled, the function creates a file handler to write log messages to a file. This includes creating the necessary directory.
+  - **Console Logging**: If console logging is enabled, a stream handler is created to send log messages to the console.
+  - **Setting Levels**: The function sets the logging levels for the file, console, and root loggers based on the inputs.
+  - **Returns**: The configured logger object is returned.
 
-### Helper Functions
+#### tokenbucket
+- `TokenBucket`: Implements a token bucket algorithm.
 
-The `helper` module provides various helper functions.
+#### decorator
+- `retry`: A decorator for retrying functions.
+- `time_execution`: Times the execution of a function.
 
+#### helper
 - `get_git_tree()`: Retrieves the Git tree of a repository.
-- `setup_browser()`: Sets up a web browser for automation.
-- `make_soup()`: Creates a BeautifulSoup object from HTML.
 - `colorize()`: Adds color to text.
 - `get_variable_name()`: Gets the name of a variable as a string.
-- `check_internet()`: Checks internet connectivity.
-- `connect_to_vpn()`: Connects to a VPN.
-- `disconnect_from_vpn()`: Disconnects from a VPN.
+- `ensure_windows_os()`: Ensures the OS is Windows.
+
+#### web (Note: may be disabled due to missing dependencies)
+- `WebConfig`, `setup_browser`, `get_website`, `setup_proxy_simple`, `setup_proxy_wire`, `test_proxy`, `get_original_ip`, `get_current_ip`, `rotate_ip`, `make_soup`, `connect_to_vpn`, `disconnect_from_vpn`, `check_internet`
+
+### openai
+
+The `openai` module provides functions for working with OpenAI APIs.
+
+#### Functions
+- `call_whisper()`: Calls the Whisper API.
+- `call_gpt()`: Calls the GPT API.
+- `gpt_loop()`: Loops the GPT API call.
+- `generate_image()`: Generates an image using the DALLE model.
+- `dallee_loop()`: Loops the DALLE model image generation.
+
+### audio (Note: may be disabled due to missing dependencies)
+
+The `audio` module provides functions for working with audio files.
+
+#### Functions
+- `uhoh()`, `criterr()`, `warning()`, `success()`: Play sounds.
+- `ogg_to_mp3()`: Converts OGG audio files to MP3 format.
+- `AudioRecorder`: Class for recording audio.
+
+---
 
 ## Installation
 
 To install the HelpingHands library, you can use pip:
 
 `pip install helpinghands`
-
 
 ## Usage
 
@@ -89,10 +105,9 @@ from helpinghands.utility.logger import config_logger
 
 logger = config_logger()
 
-from helpinghands.audio import sounds, 
+from helpinghands.audio import sounds
 from helpinghands.utility.decorator import retry
 from helpinghands.openai import call_whisper
-
 
 @retry
 def func(api_key, action, mp3_path):
@@ -103,16 +118,10 @@ def func(api_key, action, mp3_path):
     return output
 ```
 
----
 ## License
-    This project serves as a demonstration of and it is not intended for cloning or external contributions. We kindly ask that you respect this intention by not using it for commercial purposes or distributing it.
+This project serves as a demonstration of and it is not intended for cloning or external contributions. We kindly ask that you respect this intention by not using it for commercial purposes or distributing it. This work is licensed under the [Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International License](https://creativecommons.org/licenses/by-nc-nd/4.0/)
 
-    This work is licensed under the Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International License. This means that while you are welcome to view and understand the code, it is not meant to be repurposed under standard open-source protocols.
+## Author
+[Emil Rühmland](https://github.com/emilrueh)
 
-    To view a copy of this license, please visit http://creativecommons.org/licenses/by-nc-nd/4.0/ or send a letter to Creative Commons, PO Box 1866, Mountain View, CA 94042, USA.
-
-    The terms of this license stipulate that:
-
-    Attribution - If sharing the material, you must give appropriate credit and provide a link to the license.
-    NonCommercial - The material may not be used for commercial purposes.
-    NoDerivatives - If you remix, transform, or build upon the material, you may not distribute the modified material.
+This revised README includes all the functions, classes, and methods from the provided `init.py` files, categorized under the corresponding modules and submodules. It also adds a note about potential disability for certain modules due to missing dependencies and a link to the GitHub profile from the `setup.py`. Feel free to modify or further refine this content as needed!
