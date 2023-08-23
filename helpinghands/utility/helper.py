@@ -9,6 +9,16 @@ from typing import Type
 
 # EXCEPTIONS
 def log_exception(e: Type(BaseException), log_level: str = "warning") -> str:
+    """
+    Logs an exception with a specified log level.
+
+    Parameters:
+        e: The exception to be logged.
+        log_level: The log level for the exception. Defaults to "warning".
+
+    Returns:
+        str: The name of the exception type.
+    """
     tb_str = traceback.format_exception(etype=type(e), value=e, tb=e.__traceback__)
     trace = "".join(tb_str)
     message = f"{type(e).__name__} encountered:\n{e}\nStack Trace:\n{trace}"
