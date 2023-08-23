@@ -5,8 +5,16 @@ logger = get_logger()
 from pydub import AudioSegment
 
 
-def ogg_to_mp3(input_file, output_file):
-    AudioSegment.from_ogg(input_file).export(output_file, format="mp3")
+def convert_audio(input_file, output_file):
+    input_type = input_file.split(".")[-1]
+    output_type = output_file.split(".")[-1]
+
+    if input_type not in ["wav", "ogg", "mp3"]:
+        logger.error(f"Unsupported input file type: {input_type}")
+        return None
+
+    audio = AudioSegment.from_file(input_file, format=input_type)
+    audio.export(output_file, format=output_type)
     logger.info(f"Converted: {input_file} to {output_file}")
     return output_file
 
