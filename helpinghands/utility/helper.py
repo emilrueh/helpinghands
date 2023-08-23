@@ -2,9 +2,30 @@ from ..utility.logger import get_logger
 
 logger = get_logger()
 
-import sys, subprocess, platform
-
+import sys, subprocess, platform, traceback
 from termcolor import colored
+from typing import Type
+
+
+# EXCEPTIONS
+def log_exception(e: Type(BaseException), log_level: str = "warning") -> str:
+    tb_str = traceback.format_exception(etype=type(e), value=e, tb=e.__traceback__)
+    trace = "".join(tb_str)
+    message = f"{type(e).__name__} encountered:\n{e}\nStack Trace:\n{trace}"
+
+    log_levels = {
+        "debug": logger.debug,
+        "info": logger.info,
+        "warning": logger.warning,
+        "error": logger.error,
+        "exception": logger.exception,
+        "critical": logger.critical,
+    }
+
+    log_function = log_levels.get(log_level, logger.warning)
+    log_function(message)
+
+    return type(e).__name__
 
 
 # GITHUB
