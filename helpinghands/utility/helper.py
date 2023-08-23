@@ -19,7 +19,7 @@ def log_exception(e: BaseException, log_level: str = "warning") -> str:
     Returns:
         str: The name of the exception type.
     """
-    tb_str = traceback.format_exception(etype=type(e), value=e, tb=e.__traceback__)
+    tb_str = traceback.format_exception(type(e), e, e.__traceback__)
     trace = "".join(tb_str)
     message = f"{type(e).__name__} encountered:\n{e}\nStack Trace:\n{trace}"
 
