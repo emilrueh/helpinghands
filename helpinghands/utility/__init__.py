@@ -26,7 +26,13 @@ from .logger import config_logger, LOGGER_NAME
 from .tokenbucket import TokenBucket
 
 from .decorator import retry, time_execution
-from .helper import get_git_tree, colorize, get_variable_name, ensure_windows_os
+from .helper import (
+    log_exception,
+    get_git_tree,
+    colorize,
+    get_variable_name,
+    ensure_windows_os,
+)
 
 try:
     from .web import (
