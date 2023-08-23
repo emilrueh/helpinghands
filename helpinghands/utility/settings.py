@@ -10,12 +10,14 @@ from termcolor import colored
 
 
 def load_settings(
-    dotenv_settings_path="SETTINGS_PATH",
+    settings_file,
     secrets_keys_list=None,
     dotenv_path=None,
     remote_env="DOCKER_ENV",
-    default_settings_path="data/settings.json",
+    default_settings_file="data/settings.json",
 ):
+    settings_path = settings_file if settings_file else default_settings_file
+
     # Initialize an empty dictionary for secrets
     secrets_dict = {}
 
@@ -46,12 +48,9 @@ def load_settings(
                 colored(f"Loaded secrets: {', '.join(secrets_keys_list)}", "cyan")
             )
 
-        # Fetch settings path either from the environment or use the default one
-        settings_path = os.getenv(dotenv_settings_path, default_settings_path)  # error?
         # printing of the settings_path for debugging but changing to info for docker env
-        logger.info(f"settings_path = {settings_path}") if in_docker else logger.debug(
-            f"settings_path = {settings_path}"
-        )
+        logger.info(f"settings_path = {settings_path}")
+
         # Check if the settings file exists
         if not os.path.exists(settings_path):
             raise FileNotFoundError(f"Settings file not found: {settings_path}")
