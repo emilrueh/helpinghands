@@ -175,7 +175,7 @@ def setup_browser(config: WebConfig) -> Tuple[Any, Any]:
         InvalidSessionIdException,
         ConnectionError,
         WebDriverException,
-        TimeoutException,
+        # TimeoutException,
     ),
     time_mode="advanced",
 )
@@ -188,13 +188,13 @@ def get_website(
 ):
     browser = selenium_browser
     wait = selenium_wait
-    browser.set_page_load_timeout(page_timeout)  # test this first
+    # browser.set_page_load_timeout(page_timeout)  # test this first
     try:
         logger.info(f"Accessing url: {website}")
         browser.get(website)  # <= open website
-    except TimeoutException as e:
-        logger.warning(f"Page took too long to load: {e}\n")
-        raise
+    # except TimeoutException as e:
+    #     logger.warning(f"Page took too long to load: {e}\n")
+    #     raise
     except (NoSuchWindowException, InvalidSessionIdException, WebDriverException) as e:
         logger.warning(f"{type(e).__name__} encountered: {e}")
         has_internet = check_internet()
