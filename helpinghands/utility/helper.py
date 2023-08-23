@@ -8,7 +8,7 @@ from typing import Type
 
 
 # EXCEPTIONS
-def log_exception(e: Type(BaseException), log_level: str = "warning") -> str:
+def log_exception(e: BaseException, log_level: str = "warning") -> str:
     """
     Logs an exception with a specified log level.
 
