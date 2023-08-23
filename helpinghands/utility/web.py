@@ -3,6 +3,7 @@ from ..utility.logger import get_logger
 logger = get_logger()
 
 from ..utility.decorator import retry
+from ..utility.helper import log_exception
 
 # from selenium import webdriver
 from seleniumwire import webdriver
@@ -12,11 +13,6 @@ from selenium.webdriver.firefox.service import Service as FirefoxService
 from selenium.webdriver.chrome.options import Options as ChromeOptions
 from selenium.webdriver.chrome.service import Service as ChromeService
 from selenium.webdriver.common.proxy import Proxy, ProxyType
-from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
-
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.common.keys import Keys
 
 from selenium.common.exceptions import (
     WebDriverException,
@@ -196,7 +192,8 @@ def get_website(
     #     logger.warning(f"Page took too long to load: {e}\n")
     #     raise
     except (NoSuchWindowException, InvalidSessionIdException, WebDriverException) as e:
-        logger.warning(f"{type(e).__name__} encountered: {e}")
+        log_exception(e)
+
         has_internet = check_internet()
         if has_internet:
             browser, wait = rotate_ip(browser_object=browser, config=config)
