@@ -1,13 +1,16 @@
 import sounddevice as sd
 import soundfile as sf
-import keyboard
 import numpy as np
 from datetime import datetime
+import os, keyboard
 
 
 class AudioRecorder:
-    def __init__(self, filename, duration=None, sample_rate=44100, channels=2):
+    def __init__(
+        self, filename, output_directory, duration=None, sample_rate=44100, channels=2
+    ):
         self.filename = filename
+        self.output_directory = output_directory
         self.duration = duration
         self.sample_rate = sample_rate
         self.channels = channels
@@ -18,6 +21,7 @@ class AudioRecorder:
             samplerate=self.sample_rate, channels=self.channels
         )
         self.recording.start()
+        start_time = datetime.now()  # Record the starting time
         data = []
         silent_data = []
         silent_seconds = 10
@@ -42,6 +46,8 @@ class AudioRecorder:
                 # If the audio volume is above the threshold, append the silent_data back to data
                 data.extend(silent_data)
                 silent_data = []
+            if self.duration and (datetime.now() - start_time).seconds >= self.duration:
+                self.set_stop_recording()  # Stop the recording after the specified duration
             if self.stop_recording:
                 break
         # Process the remaining data if there is any
@@ -53,7 +59,10 @@ class AudioRecorder:
 
     def write_to_file(self, data):
         data = np.concatenate(data)
-        filename = f"{self.filename}_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.wav"
+        filename = os.path.join(
+            self.output_directory,
+            f"{self.filename}_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.wav",
+        )
         sf.write(filename, data, self.sample_rate)
         return filename
 
