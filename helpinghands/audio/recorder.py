@@ -61,7 +61,7 @@ class AudioRecorder:
         data = np.concatenate(data)
         filename = os.path.join(
             self.output_directory,
-            f"{self.filename}_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.wav",
+            f"{self.filename}.wav",
         )
         sf.write(filename, data, self.sample_rate)
         return filename
