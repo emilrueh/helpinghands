@@ -22,6 +22,8 @@ from .data import (
     write_to_txt_file,
     load_text_from_file,
     open_txt_file,
+    get_image_size,
+    get_image,
 )
 from .settings import load_settings
 from .logger import config_logger, LOGGER_NAME
