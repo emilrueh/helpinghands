@@ -82,12 +82,6 @@ def dallee_loop(
     file_extension=".png",
     file_directory=None,
 ):
-    # If file_directory is not specified, set it to the current file_directory
-    if file_directory is None:
-        file_directory = os.getcwd()
-
-    backup_file = os.path.join(file_directory, "output_backup_dallee.csv")
-
     # Convert data to a uniform format (list of dictionaries)
     original_type = type(data)
     if isinstance(data, pd.DataFrame):
@@ -121,14 +115,12 @@ def dallee_loop(
         row[column_for_output] = image_urls_or_filepaths[0]
         logger.info(f"Event: {i + 1} | Index: {i}\n{row[column_for_output]}")
 
+        backup_file = None
         # Save DataFrame every 100 rows
-        if i % 100 == 0:
-            backup_df(data, backup_file, i, "DALLEE", original_type)
-
-    # Save the last batch which might contain less than 100 rows
-    backup_file_final = (
-        backup_file.rsplit(".", 1)[0] + "_DALLEE_Final." + backup_file.rsplit(".", 1)[1]
-    )
+        if file_directory is not None:
+            backup_file = os.path.join(file_directory, "output_backup_dallee.csv")
+            if i % 100 == 0:
+                backup_df(data, backup_file, i, "DALLEE", original_type)
 
     # Convert back to DataFrame if necessary
     if original_type is list:
@@ -136,8 +128,15 @@ def dallee_loop(
     elif original_type is pd.DataFrame:
         data_final = pd.DataFrame.from_records(data)
 
-    data_final.to_csv(backup_file_final, index=False)
-    logger.info(f"Final file saved at path: {backup_file_final}")
+    # Save the last batch which might contain less than 100 rows
+    if backup_file and file_directory is not None:
+        backup_file_final = (
+            backup_file.rsplit(".", 1)[0]
+            + "_DALLEE_Final."
+            + backup_file.rsplit(".", 1)[1]
+        )
+        data_final.to_csv(backup_file_final, index=False)
+        logger.info(f"Final file saved at path: {backup_file_final}")
 
     # Convert back to DataFrame before returning
     if original_type is pd.DataFrame:

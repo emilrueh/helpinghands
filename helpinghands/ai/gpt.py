@@ -8,13 +8,15 @@ import time, requests, pandas as pd
 import openai
 
 
-def call_gpt(api_key, gpt_model="3.5-turbo", prompt="How are you?", input_text=""):
+def call_gpt(api_key, gpt_model=3, prompt="How are you?", input_text=""):
     if api_key:
         # Set your OpenAI API key
         openai.api_key = api_key
     else:
         return "No OpenAI API key..."
 
+    if gpt_model == 3:
+        gpt_model = "3.5-turbo"
     if isinstance(gpt_model, int):
         gpt_model = str(gpt_model)
 
@@ -64,7 +66,7 @@ def gpt_loop(
     data,
     column_for_input,
     column_for_output,
-    gpt_model="3.5-turbo",
+    gpt_model=3,
     path_to_file=None,
     char_max=None,
     char_min=None,
