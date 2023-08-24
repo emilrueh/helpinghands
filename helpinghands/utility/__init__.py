@@ -18,7 +18,8 @@ from .data import (
     contains_gmaps,
     manipulate_csv_data,
     insert_newlines,
-    append_to_or_create_txt_file,
+    write_to_txt_file,
+    load_text_from_file,
     open_txt_file,
 )
 from .settings import load_settings
