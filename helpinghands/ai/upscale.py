@@ -35,7 +35,7 @@ def load_model(model_name: str, scale: int = 2):
 def super_image(
     input_file: str,
     scale: int = 2,
-    max_sqr_x: int = 1000,  # this is the height and lenght of a square
+    max_res: int = 1000,  # squared
     model_name: str = "edsr-base",
     output_file_name: str = "scaled",
     output_file_format: str = ".png",
@@ -44,7 +44,11 @@ def super_image(
     model=None,
     delete_model=True,
 ):
-    max_res = max_sqr_x * max_sqr_x
+    if not max_res:
+        logger.warning(f"Maximum resolution check switched off.")
+        max_res = "not set."
+    else:
+        max_res = max_res * max_res
 
     if input_file:
         image_obj = get_image(input_file)
@@ -52,10 +56,10 @@ def super_image(
 
         if width * height >= max_res:
             print(
-                f"{width}x{height} is large enough and does not need to be upscaled for this purpose."
+                f"{width}x{height} is large enough and does not need to be upscaled for this purpose as max_res is {max_res}"
             )
             return
-        if width * height >= max_res - (max_res // 3):
+        if width * height >= max_res * 0.7:
             scale = 2
 
     if model is None:
@@ -106,7 +110,7 @@ def super_image_loop(
     output_file_format=".png",
     output_file_dir=None,
     save_comparison=False,
-    max_sqr_x=1000,
+    max_res=1000,
 ):
     model = load_model(model_name, scale)
 
@@ -125,7 +129,7 @@ def super_image_loop(
         super_image(
             input_file=input_file,
             scale=scale,
-            max_sqr_x=max_sqr_x,
+            max_res=max_res,
             model_name=model_name,
             output_file_name=unique_output_file_name,
             output_file_format=output_file_format,
