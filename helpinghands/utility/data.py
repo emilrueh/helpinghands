@@ -15,7 +15,9 @@ from collections import Counter
 import re
 import textwrap
 from termcolor import colored
-import platform, subprocess
+import platform, subprocess, requests
+from io import BytesIO
+from PIL import Image
 
 
 # general data work
@@ -568,3 +570,21 @@ def open_txt_file(file_path):
             subprocess.run(["xdg-open", file_path], check=True)
     except Exception as e:
         print(f"An error occurred: {str(e)}")
+
+
+# IMAGE
+def get_image_size(image_obj):
+    width, height = image_obj.size
+    logger.debug(f"Image size: {width}px x {height}px\n{image_obj}")
+    return width, height
+
+
+def get_image(source):
+    if source.startswith("http"):
+        response = requests.get(source)
+        image_obj = Image.open(BytesIO(response.content))
+    elif os.path.exists(source):
+        image_obj = Image.open(source)
+    else:
+        raise ValueError("Invalid URL or file path.")
+    return image_obj
