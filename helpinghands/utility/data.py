@@ -15,6 +15,7 @@ from collections import Counter
 import re
 import textwrap
 from termcolor import colored
+import platform, subprocess
 
 
 # general data work
@@ -525,31 +526,30 @@ def insert_newlines(string, every=64):
     return "\n".join(textwrap.wrap(string, every))
 
 
-def append_to_or_create_txt_file(input_text, output_file_path):
-    # Try to read the current contents of the file
-    try:
-        with open(output_file_path, "r") as f:
-            current_contents = f.read()
-    except IOError:
-        # If the file doesn't exist, create it by opening it in write mode
-        with open(output_file_path, "w") as f:
-            f.write(input_text)
-            current_contents = ""
-
-    # Append the output to the file only if it's not already present
-    if input_text not in current_contents:
-        with open(output_file_path, "a") as f:
-            if current_contents == "":
-                f.write(input_text)
-            else:
-                # Append a couple of newline characters before the new output
-                # to ensure there's some space between it and the previous content
-                f.write("\n\n" + input_text)
+def write_to_txt_file(input_text, file_name, output_directory, mode="append"):
+    """
+    Specify any mode except for 'append' for write and replace.
+    """
+    output_file_path = os.path.join(output_directory, f"{file_name}.txt")
+    with open(output_file_path, "a" if mode == "append" else "w") as f:
+        f.write(("\n" if mode == "append" and f.tell() > 0 else "") + input_text)
 
 
-def open_txt_file(txt_file_path):
+def load_text_from_file(txt_file_path):
     try:
         with open(txt_file_path, "r") as f:
             return f.read()
     except:
         return print(f"Failed to open .txt file at path: {txt_file_path}")
+
+
+def open_txt_file(file_path):
+    try:
+        if platform.system() == "Windows":
+            os.startfile(file_path)
+        elif platform.system() == "Darwin":  # macOS
+            subprocess.run(["open", file_path], check=True)
+        elif platform.system() == "Linux":
+            subprocess.run(["xdg-open", file_path], check=True)
+    except Exception as e:
+        print(f"An error occurred: {str(e)}")
