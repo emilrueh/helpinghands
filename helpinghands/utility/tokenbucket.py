@@ -2,17 +2,20 @@ import time
 
 
 class TokenBucket:
-    def __init__(self, tokens, fill_rate):
+    def __init__(self, tokens, fill_rate, activated=True):
         """tokens is the total amount of tokens in the bucket. fill_rate is the
         rate in tokens/second that the bucket will be refilled."""
         self.capacity = float(tokens)
         self._tokens = float(tokens)
         self.fill_rate = float(fill_rate)
         self.timestamp = time.monotonic()
+        self.activated = activated
 
     def consume(self, tokens):
         """Consume tokens from the bucket. Returns 0 if there were sufficient
         tokens, otherwise the expected time until enough tokens become available."""
+        if not self.activated:
+            return 0
         if tokens <= self._tokens:
             self._tokens -= tokens
             return 0
