@@ -543,12 +543,16 @@ def insert_newlines(string, every=64):
     return "\n".join(textwrap.wrap(string, every))
 
 
-def write_to_txt_file(input_text, file_name, output_directory, mode="append"):
+def write_to_txt_file(
+    input_text, file_name, output_directory, mode="append", encoding="utf-8"
+):
     """
     Specify any mode except for 'append' for write and replace.
     """
     output_file_path = os.path.join(output_directory, f"{file_name}.txt")
-    with open(output_file_path, "a" if mode == "append" else "w") as f:
+    with open(
+        output_file_path, "a" if mode == "append" else "w", encoding=encoding
+    ) as f:
         f.write(("\n" if mode == "append" and f.tell() > 0 else "") + input_text)
 
 
