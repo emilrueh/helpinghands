@@ -145,9 +145,11 @@ def super_image_loop(
         backup_file = None
         # Save DataFrame every 100 rows
         if output_file_dir is not None:
-            backup_file = os.path.join(output_file_dir, "output_backup_upscale.csv")
+            backup_file = os.path.join(
+                output_file_dir, f"output_backup_{output_file_name.upper()}.csv"
+            )
             if i % 100 == 0:
-                backup_df(data, backup_file, i, "UPSCALE", original_type)
+                backup_df(data, backup_file, i, output_file_name.upper(), original_type)
 
     # cleaning model after last iteration
     model = None
@@ -163,9 +165,7 @@ def super_image_loop(
     # Save the last batch
     if backup_file and output_file_dir is not None:
         backup_file_final = (
-            backup_file.rsplit(".", 1)[0]
-            + "_UPSCALE_Final."
-            + backup_file.rsplit(".", 1)[1]
+            backup_file.rsplit(".", 1)[0] + "_Final." + backup_file.rsplit(".", 1)[1]
         )
         data_final.to_csv(backup_file_final, index=False)
         logger.info(f"Final file saved at path: {backup_file_final}")
