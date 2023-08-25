@@ -4,7 +4,7 @@ logger = get_logger()
 
 from ..utility.data import backup_df
 
-import time, requests, pandas as pd
+import time, requests, os, pandas as pd
 import openai
 
 
@@ -67,12 +67,13 @@ def gpt_loop(
     column_for_input,
     column_for_output,
     gpt_model=3,
-    path_to_file=None,
     char_max=None,
     char_min=None,
     to_remove=None,
     max_attempts=6,
     tolerance_pct=5,
+    output_file_name="gpt",
+    output_file_directory=None,
 ):
     tolerance = tolerance_pct / 100
 
@@ -124,15 +125,19 @@ def gpt_loop(
         logger.info(f"Entry: {i + 1} | Index: {i}\n{row[column_for_output]}")
 
         # Save DataFrame every 100 rows
-        if path_to_file is not None and i % 100 == 0:
-            backup_df(data, path_to_file, i, "GPT", original_type)
+        if output_file_directory is not None:
+            backup_file = os.path.join(
+                output_file_directory, f"output_backup_{output_file_name}.csv"
+            )
+            if i % 100 == 0:
+                backup_df(data, backup_file, i, output_file_name.upper(), original_type)
 
     # Save the last batch which might contain less than 100 rows
-    if path_to_file is not None:
-        path_to_file_final = (
-            path_to_file.rsplit(".", 1)[0]
-            + "_GPT_Final."
-            + path_to_file.rsplit(".", 1)[1]
+    if backup_file is not None:
+        backup_file_final = (
+            backup_file.rsplit(".", 1)[0]
+            + f"_{output_file_name.upper()}_Final."
+            + backup_file.rsplit(".", 1)[1]
         )
 
         # Convert back to DataFrame if necessary
@@ -141,7 +146,7 @@ def gpt_loop(
         else:
             data_final = data
 
-        data_final.to_csv(path_to_file_final, index=False)
-        logger.info(f"Final file saved at path: {path_to_file_final}")
+        data_final.to_csv(backup_file_final, index=False)
+        logger.info(f"Final file saved at path: {backup_file_final}")
 
     return data
