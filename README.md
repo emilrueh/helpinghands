@@ -70,9 +70,9 @@ The `web` module provides various web-related functions (Note: may be disabled d
 - `disconnect_from_vpn()`: Disconnects from VPN.
 - `check_internet()`: Checks the internet connection.
 
-### openai
+### AI
 
-The `openai` module provides functions for working with OpenAI APIs.
+The `ai` module provides functions for working with OpenAI APIs.
 
 #### Functions
 - `call_whisper()`: Calls the Whisper API.
@@ -80,6 +80,7 @@ The `openai` module provides functions for working with OpenAI APIs.
 - `gpt_loop()`: Loops the GPT API call.
 - `generate_image()`: Generates an image using the DALLE model.
 - `dallee_loop()`: Loops the DALLE model image generation.
+- `super_image()`: pip image upscaling solution
 
 ### audio
 
