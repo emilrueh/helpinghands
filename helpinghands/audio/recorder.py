@@ -2,6 +2,8 @@ from ..utility.logger import get_logger
 
 logger = get_logger()
 
+from ..utility.helper import log_exception
+
 import sounddevice as sd
 import soundfile as sf
 import numpy as np
@@ -41,74 +43,84 @@ class AudioRecorder:
         self.text_file_dir = text_file_dir
         self.conversation = ""
 
+        self.audio_file = None
+        self.transcript_file_path = None
+
     def record(self, transcribe=False):
-        total_duration = 0
-        self.stop_words = [word.casefold() for word in self.stop_words]
+        try:
+            total_duration = 0
+            self.stop_words = [word.casefold() for word in self.stop_words]
 
-        while total_duration < self.duration:
-            self.recording = sd.InputStream(
-                samplerate=self.sample_rate, channels=self.channels
+            while total_duration < self.duration:
+                self.recording = sd.InputStream(
+                    samplerate=self.sample_rate, channels=self.channels
+                )
+                self.recording.start()
+                start_time = datetime.now()
+                data = []
+                keyboard.add_hotkey("q", self.set_stop_recording)
+
+                # Preallocate array for performance increase
+                data_array_size = (self.sample_rate * self.intervals, self.channels)
+                data = np.empty(data_array_size, dtype=np.float32)
+                index = 0
+
+                segment_duration = 0
+                transcript = ""
+                logger.debug(f'Recording started at {start_time.strftime("%H:%M:%S")}')
+                while True:
+                    frames, _ = self.recording.read(self.sample_rate)
+                    data[index : index + len(frames)] = frames
+                    index += len(frames)
+                    segment_duration = (datetime.now() - start_time).seconds
+
+                    if segment_duration >= self.intervals:
+                        self.audio_file = self.write_to_wav_file(data[:index])
+                        index = 0  # Reset index
+                        data = np.empty(data_array_size, dtype=np.float32)  # Reset data
+                        if transcribe:
+                            transcript = self.voice_transcript(self.audio_file)
+                            self.conversation += f" {transcript}"
+                            self.check_stop_words(transcript)
+                            self.transcript_file_path = os.path.join(
+                                self.text_file_dir, f"{self.transcript_file_name}.txt"
+                            )
+
+                    if self.stop_recording:
+                        break
+
+                self.recording.stop()
+                logger.debug(
+                    f'Recording stopped at {datetime.now().strftime("%H:%M:%S")}'
+                )
+                keyboard.clear_hotkey("q")
+                self.stop_recording = False  # Reset for the next segment
+
+            if transcribe:
+                write_to_txt_file(
+                    self.conversation,
+                    file_name=self.conversation_file_name,
+                    output_directory=self.text_file_dir,
+                    mode="write",
+                )
+
+            # deleting 3s files
+            transcript_file_path = (
+                os.path.join(self.text_file_dir, f"{self.transcript_file_name}.txt")
+                if transcribe
+                else None
             )
-            self.recording.start()
-            start_time = datetime.now()
-            data = []
-            filename = None
-            keyboard.add_hotkey("q", self.set_stop_recording)
 
-            segment_duration = 0
-            transcript = ""
-            logger.debug(f'Recording started at {start_time.strftime("%H:%M:%S")}')
-            while True:
-                frames, _ = self.recording.read(self.sample_rate)
-                data.append(frames)
-                segment_duration = (datetime.now() - start_time).seconds
-
-                if segment_duration >= self.intervals:  # Check for 3-second intervals
-                    filename = self.write_to_wav_file(data)
-                    if transcribe:
-                        transcript = self.voice_transcript(
-                            filename
-                        )  # Transcribe the audio
-                        self.conversation += f" {transcript}"
-                        self.check_stop_words(transcript)
-                    data = []
-
-                    total_duration += segment_duration  # Increment total_duration
-                    start_time = datetime.now()  # Reset start_time for next interval
-
-                if self.stop_recording:
-                    break
-
-            self.recording.stop()
-            logger.debug(f'Recording stopped at {datetime.now().strftime("%H:%M:%S")}')
-            keyboard.clear_hotkey("q")
-            self.stop_recording = False  # Reset for the next segment
-
-        audio_file = filename
-
-        if transcribe:
-            write_to_txt_file(
-                self.conversation,
-                file_name=self.conversation_file_name,
-                output_directory=self.text_file_dir,
-                mode="write",
-            )
-
-        # deleting 3s files
-        transcript_file_path = (
-            os.path.join(self.text_file_dir, f"{self.transcript_file_name}.txt")
-            if transcribe
-            else None
-        )
-        self.cleanup_files(audio_file, transcript_file_path)
-
-        if transcribe:
-            return self.conversation, audio_file
-        else:
-            return audio_file
+            if transcribe:
+                return self.conversation
+            else:
+                return self.audio_file
+        except Exception as e:
+            log_exception(e)
+        finally:
+            self.cleanup_files()
 
     def write_to_wav_file(self, data):
-        data = np.concatenate(data)
         filename = os.path.join(
             self.output_directory,
             f"{self.filename}.wav",
@@ -135,7 +147,10 @@ class AudioRecorder:
         print(transcript, end=" ", flush=True)
         return transcript
 
-    def cleanup_files(self, audio_file, transcript_file=None):
-        os.remove(audio_file)
-        if transcript_file:
-            os.remove(transcript_file)
+    def cleanup_files(self):
+        if self.audio_file:
+            logger.debug(f"Attempting to delete {self.audio_file}")
+            os.remove(self.audio_file)
+        if self.transcript_file_path:
+            logger.debug(f"Attempting to delete {self.transcript_file_path}")
+            os.remove(self.transcript_file_path)
