@@ -78,9 +78,9 @@ def dallee_loop(
     ],
     num_images=1,
     image_size="1024x1024",
-    file_name="dallee",
-    file_extension=".png",
-    file_directory=None,
+    output_file_name="dallee",
+    output_file_extension=".png",
+    output_file_directory=None,
 ):
     # Convert data to a uniform format (list of dictionaries)
     original_type = type(data)
@@ -107,9 +107,9 @@ def dallee_loop(
             prompt,
             num_images,
             image_size,
-            file_name=f"{file_name}_{i}" if file_name else None,
-            file_extension=file_extension,
-            file_directory=file_directory,
+            file_name=f"{output_file_name}_{i}" if output_file_name else None,
+            file_extension=output_file_extension,
+            file_directory=output_file_directory,
         )
 
         row[column_for_output] = image_urls_or_filepaths[0]
@@ -117,10 +117,12 @@ def dallee_loop(
 
         backup_file = None
         # Save DataFrame every 100 rows
-        if file_directory is not None:
-            backup_file = os.path.join(file_directory, "output_backup_dallee.csv")
+        if output_file_directory is not None:
+            backup_file = os.path.join(
+                output_file_directory, f"output_backup_{output_file_name}.csv"
+            )
             if i % 100 == 0:
-                backup_df(data, backup_file, i, "DALLEE", original_type)
+                backup_df(data, backup_file, i, output_file_name.upper(), original_type)
 
     # Convert back to DataFrame if necessary
     if original_type is list:
@@ -129,11 +131,9 @@ def dallee_loop(
         data_final = pd.DataFrame.from_records(data)
 
     # Save the last batch which might contain less than 100 rows
-    if backup_file and file_directory is not None:
+    if backup_file and output_file_directory is not None:
         backup_file_final = (
-            backup_file.rsplit(".", 1)[0]
-            + "_DALLEE_Final."
-            + backup_file.rsplit(".", 1)[1]
+            backup_file.rsplit(".", 1)[0] + "_Final." + backup_file.rsplit(".", 1)[1]
         )
         data_final.to_csv(backup_file_final, index=False)
         logger.info(f"Final file saved at path: {backup_file_final}")
