@@ -5,6 +5,4 @@ try:
 except (ImportError, OSError):
     import warnings
 
-    warnings.warn(
-        "The audio module is disabled in the current env due to missing dependencies. All other helpinghands modules should work as expected."
-    )
+    warnings.warn("'audio' is disabled")

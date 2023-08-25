@@ -57,6 +57,4 @@ try:
 except ModuleNotFoundError:
     import warnings
 
-    warnings.warn(
-        "The web.py module is disabled in the current env due to missing dependencies. All other helpinghands modules should work as expected."
-    )
+    warnings.warn("'web' is disabled")
