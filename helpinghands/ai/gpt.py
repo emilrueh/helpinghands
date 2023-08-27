@@ -51,10 +51,9 @@ def call_gpt(api_key, gpt_model=3, prompt="How are you?", input_text=""):
             openai.error.APIError,
             openai.error.ServiceUnavailableError,
             openai.error.APIConnectionError,
+            requests.exceptions.ReadTimeout,
         ) as e:
-            logger.warning(
-                f"{type(e).__name__} encountered. New API call attempt in {(2**attempts)} seconds...\n{e}"
-            )
+            logger.warning(f"{type(e).__name__} encountered. New API call attempt in {(2**attempts)} seconds...\n{e}")
             time.sleep((2**attempts))
             attempts += 1
     return f"No valid response from OpenAI API after {attempts} attempts!"
@@ -105,11 +104,7 @@ def gpt_loop(
                 best_output = api_output
                 best_output_length = len(api_output)
 
-            if (
-                (char_min * (1 - tolerance))
-                <= len(api_output)
-                <= (char_max * (1 + tolerance))
-            ):
+            if (char_min * (1 - tolerance)) <= len(api_output) <= (char_max * (1 + tolerance)):
                 break
 
             logger.warning(
@@ -126,18 +121,14 @@ def gpt_loop(
 
         # Save DataFrame every 100 rows
         if output_file_directory is not None:
-            backup_file = os.path.join(
-                output_file_directory, f"output_backup_{output_file_name}.csv"
-            )
+            backup_file = os.path.join(output_file_directory, f"output_backup_{output_file_name}.csv")
             if i % 100 == 0:
                 backup_df(data, backup_file, i, output_file_name.upper(), original_type)
 
     # Save the last batch which might contain less than 100 rows
     if backup_file is not None:
         backup_file_final = (
-            backup_file.rsplit(".", 1)[0]
-            + f"_{output_file_name.upper()}_Final."
-            + backup_file.rsplit(".", 1)[1]
+            backup_file.rsplit(".", 1)[0] + f"_{output_file_name.upper()}_Final." + backup_file.rsplit(".", 1)[1]
         )
 
         # Convert back to DataFrame if necessary
