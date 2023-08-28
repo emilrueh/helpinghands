@@ -1,11 +1,10 @@
 from ..utility.logger import get_logger
 
-logger = get_logger()
-
 import functools, time
 
 
 def retry(exceptions, time_mode: str = "medium"):
+    logger = get_logger()
     """
     A retry decorator that applies a backoff strategy for retries and controls the
     number of retry attempts based on the selected time_mode. It will retry the decorated
@@ -56,12 +55,13 @@ def retry(exceptions, time_mode: str = "medium"):
                 try:
                     return func(*args, **kwargs)
                 except exceptions as e:
-                    logger.info(f"Attempt {attempt}")
                     if attempt >= total_tries - 1:
                         logger.warning(f"All retries failed after {attempt} attempts.")
                         raise
                     else:
-                        print(f"{str(e)}: Retrying in {round(wait_time, 2)} seconds...")
+                        logger.warning(
+                            f"{str(e).split('  ')[0]}: Retrying attempt {attempt+1} in {round(wait_time, 2)} seconds..."
+                        )
                         time.sleep(wait_time)
                         wait_time *= backoff_factor
 
@@ -81,25 +81,21 @@ def time_execution(logger, ndigits=3, time_mode="seconds", log_mode="info"):
 
             if log_mode == "info":
                 if time_mode == "seconds":
-                    logger.info(
-                        f"{func.__name__} completed in {round(end_time - start_time, ndigits)} seconds."
-                    )
+                    logger.info(f"{func.__name__} completed in {round(end_time - start_time, ndigits)} seconds.")
                 elif time_mode == "minutes":
                     logger.info(
-                        f"{func.__name__} completed in {round(end_time - start_time, ndigits)/60} minutes."
+                        f"{func.__name__} completed in {round(((end_time - start_time) / 60), ndigits)} minutes."
                     )
                 elif time_mode == "hours":
                     logger.info(
-                        f"{func.__name__} completed in {(round(end_time - start_time, ndigits)/60)/60} hours."
+                        f"{func.__name__} completed in {round((((end_time - start_time) / 60) /60), ndigits)} hours."
                     )
                 else:
                     logger.info(
                         f"{func.__name__} completed in {round(end_time - start_time, ndigits)}s {round(end_time - start_time, ndigits)/60} min {(round(end_time - start_time, ndigits)/60)/60} h."
                     )
             else:
-                logger.warning(
-                    "No other log_mode than 'info' implemented at this stage. Please select default."
-                )
+                logger.warning("No other log_mode than 'info' implemented at this stage. Please select default.")
 
             return result
 
