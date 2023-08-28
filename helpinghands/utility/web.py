@@ -61,7 +61,7 @@ def check_versions_and_paths():
 
 
 # SELENIUM
-@retry((Exception), "verbose")
+@retry((Exception), "advanced")
 def open_website(
     url,
     browser_config: WebConfig = WebConfig,
