@@ -1,14 +1,13 @@
 from ..utility.logger import get_logger
 
-logger = get_logger()
-
 import sys, subprocess, platform, traceback
 from termcolor import colored
 from typing import Type
 
 
 # EXCEPTIONS
-def log_exception(e: BaseException, log_level: str = "warning") -> str:
+def log_exception(e: BaseException, log_level: str = "warning", use_traceback=False, tb_limit=4) -> str:
+    logger = get_logger()
     """
     Logs an exception with a specified log level.
 
@@ -19,9 +18,13 @@ def log_exception(e: BaseException, log_level: str = "warning") -> str:
     Returns:
         str: The name of the exception type.
     """
-    tb_str = traceback.format_exception(type(e), e, e.__traceback__)
-    trace = "".join(tb_str)
-    message = f"{type(e).__name__} encountered:\n{e}\nStack Trace:\n{trace}"
+    message = f"{type(e).__name__}: {str(e).split('  ')[0]}"
+
+    if use_traceback:
+        tb_str = traceback.format_exception(type(e), e, e.__traceback__, limit=tb_limit)
+        trace = "\n".join(tb_str)
+        traceback_message = f"\n\n--- Stack Trace ---\n{trace}\n--------------------\n"
+        message += traceback_message
 
     log_levels = {
         "debug": logger.debug,
@@ -49,9 +52,7 @@ def get_git_tree(repo_path="."):
         return tree_string
 
     # Get list of files in repository
-    result = subprocess.run(
-        ["git", "ls-files"], capture_output=True, cwd=repo_path, text=True
-    )
+    result = subprocess.run(["git", "ls-files"], capture_output=True, cwd=repo_path, text=True)
     files = result.stdout.split("\n")
 
     # Build and print directory tree
@@ -66,9 +67,7 @@ def get_git_tree(repo_path="."):
 
 # OTHER
 def colorize(text, color="yellow", background=None, style=None):
-    if (
-        sys.stdout.isatty()
-    ):  # Only colorize if output is going to a terminal (excluding jupyter nb)
+    if sys.stdout.isatty():  # Only colorize if output is going to a terminal (excluding jupyter nb)
         return colored(text, color, background, style)
     else:
         return text
