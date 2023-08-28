@@ -1,11 +1,10 @@
 from ..utility.logger import get_logger
 
-logger = get_logger()
-
 from pydub import AudioSegment
 
 
 def convert_audio(input_file, output_file):
+    logger = get_logger()
     input_type = input_file.split(".")[-1]
     output_type = output_file.split(".")[-1]
 
@@ -20,6 +19,7 @@ def convert_audio(input_file, output_file):
 
 
 def combine_audio_files(input_files, output_file):
+    logger = get_logger()
     segments = [AudioSegment.from_ogg(file) for file in input_files]
     combined = sum(segments, AudioSegment.empty())
     combined.export(output_file, format="ogg")

@@ -44,12 +44,10 @@ def config_logger(
         "lvl_file": lvl_file if lvl_file is None else None,
         "lvl_root": lvl_root if lvl_root == "INFO" else None,
         "fmt_console": fmt_console
-        if fmt_console
-        == "%(name)s - %(levelname)s - %(module)s - %(lineno)d - %(message)s"
+        if fmt_console == "%(name)s - %(levelname)s - %(module)s - %(lineno)d - %(message)s"
         else None,
         "fmt_file": fmt_file
-        if fmt_file
-        == "%(asctime)s - %(name)s - %(levelname)s - %(module)s - %(lineno)d - %(message)s"
+        if fmt_file == "%(asctime)s - %(name)s - %(levelname)s - %(module)s - %(lineno)d - %(message)s"
         else None,
         "fmt_date": fmt_date if fmt_date == "%Y-%m-%d %H:%M:%S:Ms" else None,
         "file_name": file_name if file_name == "runtime" else None,
@@ -116,5 +114,4 @@ def config_logger(
         default_lvl_root = "DEBUG"
         print(f"Set the root level to {default_lvl_root}.")
         logger.setLevel(default_lvl_root.upper())
-
     return logger

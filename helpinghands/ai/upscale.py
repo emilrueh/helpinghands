@@ -1,7 +1,4 @@
 from ..utility.logger import get_logger
-
-logger = get_logger()
-
 from ..utility.helper import log_exception
 from ..utility.data import backup_df, get_image, get_image_size
 
@@ -27,9 +24,7 @@ def load_model(model_name: str, scale: int = 2):
     elif model_name == "edsr-base":
         return EdsrModel.from_pretrained(model_path, scale=scale)
     else:
-        raise ValueError(
-            f"Model {model_name} not found. Please select another model_name."
-        )
+        raise ValueError(f"Model {model_name} not found. Please select another model_name.")
 
 
 def super_image(
@@ -44,6 +39,7 @@ def super_image(
     model=None,
     delete_model=True,
 ):
+    logger = get_logger()
     if not max_res:
         logger.warning(f"Maximum resolution check switched off.")
         max_res = "not set."
@@ -77,15 +73,11 @@ def super_image(
         inputs = ImageLoader.load_image(image)
         preds = model(inputs)
 
-        full_file_path = os.path.join(
-            output_file_dir, f"{output_file_name}{scale}x{output_file_format}"
-        )
+        full_file_path = os.path.join(output_file_dir, f"{output_file_name}{scale}x{output_file_format}")
 
         ImageLoader.save_image(preds, full_file_path)
         if save_comparison:
-            ImageLoader.save_compare(
-                inputs, preds, full_file_path.replace("x", "x_compare")
-            )
+            ImageLoader.save_compare(inputs, preds, full_file_path.replace("x", "x_compare"))
 
     except Exception as e:
         exception_name = log_exception(e)
@@ -112,6 +104,7 @@ def super_image_loop(
     save_comparison=False,
     max_res=1000,
 ):
+    logger = get_logger()
     model = load_model(model_name, scale)
 
     original_type = type(data)
@@ -122,9 +115,7 @@ def super_image_loop(
         input_file = row[input_column]
 
         unique_output_file_name = f"{output_file_name}_{i}"
-        full_file_path = os.path.join(
-            output_file_dir, f"{unique_output_file_name}{scale}x{output_file_format}"
-        )
+        full_file_path = os.path.join(output_file_dir, f"{unique_output_file_name}{scale}x{output_file_format}")
 
         super_image(
             input_file=input_file,
@@ -145,9 +136,7 @@ def super_image_loop(
         backup_file = None
         # Save DataFrame every 100 rows
         if output_file_dir is not None:
-            backup_file = os.path.join(
-                output_file_dir, f"output_backup_{output_file_name.upper()}.csv"
-            )
+            backup_file = os.path.join(output_file_dir, f"output_backup_{output_file_name.upper()}.csv")
             if i % 100 == 0:
                 backup_df(data, backup_file, i, output_file_name.upper(), original_type)
 
@@ -156,17 +145,11 @@ def super_image_loop(
     del model
     gc.collect()
 
-    data_final = (
-        pd.DataFrame.from_records(data)
-        if original_type is pd.DataFrame
-        else pd.DataFrame(data)
-    )
+    data_final = pd.DataFrame.from_records(data) if original_type is pd.DataFrame else pd.DataFrame(data)
 
     # Save the last batch
     if backup_file and output_file_dir is not None:
-        backup_file_final = (
-            backup_file.rsplit(".", 1)[0] + "_Final." + backup_file.rsplit(".", 1)[1]
-        )
+        backup_file_final = backup_file.rsplit(".", 1)[0] + "_Final." + backup_file.rsplit(".", 1)[1]
         data_final.to_csv(backup_file_final, index=False)
         logger.info(f"Final file saved at path: {backup_file_final}")
 

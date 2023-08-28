@@ -1,7 +1,5 @@
 from ..utility.logger import get_logger
 
-logger = get_logger()
-
 import pandas as pd
 import json
 import tempfile
@@ -46,9 +44,7 @@ def backup_data(input_data, backup_directory, input_name=None):
         file_extension = ".csv"
     elif isinstance(input_data, str) and input_data.endswith((".csv", ".txt", ".json")):
         file_extension = os.path.splitext(input_data)[1]
-    elif isinstance(input_data, dict) or (
-        isinstance(input_data, str) and input_data.endswith(".json")
-    ):
+    elif isinstance(input_data, dict) or (isinstance(input_data, str) and input_data.endswith(".json")):
         file_extension = ".json"
     elif isinstance(input_data, str):
         file_extension = ".txt"
@@ -56,15 +52,11 @@ def backup_data(input_data, backup_directory, input_name=None):
         raise ValueError("Unsupported data type")
 
     # Create a temporary file with the desired file name
-    with tempfile.NamedTemporaryFile(
-        suffix=file_extension, delete=False, mode="w"
-    ) as temp_file:
+    with tempfile.NamedTemporaryFile(suffix=file_extension, delete=False, mode="w") as temp_file:
         # Save the input data to the temporary file
         if isinstance(input_data, pd.DataFrame):
             input_data.to_csv(temp_file.name, index=False)
-        elif isinstance(input_data, str) and input_data.endswith(
-            (".csv", ".txt", ".json")
-        ):
+        elif isinstance(input_data, str) and input_data.endswith((".csv", ".txt", ".json")):
             with open(input_data, "r") as data_file:
                 temp_file.write(data_file.read())
         elif isinstance(input_data, dict):
@@ -92,14 +84,11 @@ def backup_data(input_data, backup_directory, input_name=None):
 
 
 def backup_df(data, path, i, prefix, original_type):
-    backup_file_temp = (
-        path.rsplit(".", 1)[0] + f"_{prefix}_{i//100}." + path.rsplit(".", 1)[1]
-    )
+    logger = get_logger()
+    backup_file_temp = path.rsplit(".", 1)[0] + f"_{prefix}_{i//100}." + path.rsplit(".", 1)[1]
 
     data_temp = (
-        pd.DataFrame.from_records(data[: i + 1])
-        if original_type is pd.DataFrame
-        else pd.DataFrame(data[: i + 1])
+        pd.DataFrame.from_records(data[: i + 1]) if original_type is pd.DataFrame else pd.DataFrame(data[: i + 1])
     )
 
     data_temp.to_csv(backup_file_temp, index=False)
@@ -195,17 +184,13 @@ def save_dict_to_csv(all_events_dict, csv_filename):
     for keyword, keyword_events_dict in all_events_dict.items():
         for event_id, event_info in keyword_events_dict.items():
             if event_info is not None:  # if event_info is None, we skip the event
-                info_copy = (
-                    event_info.copy()
-                )  # we don't want to modify the original dict
+                info_copy = event_info.copy()  # we don't want to modify the original dict
                 info_copy["Keyword"] = keyword
                 # info_copy["event_id"] = event_id
                 flattened_data.append(info_copy)
 
     df = pd.DataFrame(flattened_data)
-    df.to_csv(
-        csv_filename, index=False
-    )  # write dataframe to CSV, without the row index
+    df.to_csv(csv_filename, index=False)  # write dataframe to CSV, without the row index
 
 
 def create_df(data):
@@ -239,6 +224,7 @@ def delete_duplicates(data, columns_to_compare=None):
 
 
 def delete_duplicates_add_keywords(data, columns_to_compare=None):
+    logger = get_logger()
     if isinstance(data, str):  # if the input is a file path
         data = pd.read_csv(data)
 
@@ -264,9 +250,7 @@ def delete_duplicates_add_keywords(data, columns_to_compare=None):
     df_no_duplicates = data.drop_duplicates(subset=columns_to_compare, keep="first")
 
     # Print the indexes and keywords
-    added_keywords_rows = df_no_duplicates[
-        df_no_duplicates["Keyword"].str.contains(",", na=False)
-    ]
+    added_keywords_rows = df_no_duplicates[df_no_duplicates["Keyword"].str.contains(",", na=False)]
     indexes_and_keywords = added_keywords_rows[["Keyword"]]
     logger.info("Rows that gained keywords:")
     with pd.option_context("display.max_rows", None, "display.max_columns", None):
@@ -289,15 +273,11 @@ def map_keywords_to_categories(keywords, category_dict):
                 for value in category_values:
                     categories.add(value)
             else:
-                categories.add(
-                    category_values
-                )  # Use add method for sets instead of append
+                categories.add(category_values)  # Use add method for sets instead of append
     return ",".join(categories)
 
 
-def find_and_assign_tags(
-    df, tags, columns_to_check, output_column, default_value, standalone_tags=None
-):
+def find_and_assign_tags(df, tags, columns_to_check, output_column, default_value, standalone_tags=None):
     def find_tags(row):
         row_values = " ".join(str(row[col]) for col in columns_to_check)
         text = row_values.lower()
@@ -306,11 +286,7 @@ def find_and_assign_tags(
         # This part handles special cases where you need the tag to match the entire word.
         if standalone_tags:
             # Update the regular expression to consider word boundaries properly
-            found_tags = [
-                tag
-                for tag in standalone_tags
-                if re.search(rf"(^|\s){tag.lower()}(\s|$)", text)
-            ]
+            found_tags = [tag for tag in standalone_tags if re.search(rf"(^|\s){tag.lower()}(\s|$)", text)]
 
         # For other tags, the substring matching is used.
         other_tags = set(tags) - set(standalone_tags)
@@ -324,18 +300,14 @@ def find_and_assign_tags(
     return df
 
 
-def add_relevant_tags(
-    df, column_to_check, column_to_apply, categories_ordered, default=None
-):
+def add_relevant_tags(df, column_to_check, column_to_apply, categories_ordered, default=None):
     categories_ordered_lower = [category.lower() for category in categories_ordered]
 
     def find_relevant_category(row):
         if pd.isna(row[column_to_check]) or not isinstance(row[column_to_check], str):
             return default
 
-        categories_in_row = [
-            category.strip().lower() for category in row[column_to_check].split(",")
-        ]
+        categories_in_row = [category.strip().lower() for category in row[column_to_check].split(",")]
 
         for category in categories_ordered_lower:
             if category in categories_in_row:
@@ -359,10 +331,7 @@ def replace_values(df, column_to_check, list_of_values, value_to_replace_with):
         if not isinstance(row_value, str):
             return row_value
 
-        if any(
-            (val if isinstance(val, str) else str(val)).lower() in row_value.lower()
-            for val in list_of_values
-        ):
+        if any((val if isinstance(val, str) else str(val)).lower() in row_value.lower() for val in list_of_values):
             return value_to_replace_with
 
         return row_value
@@ -380,9 +349,8 @@ def contains_gmaps(link):
         return link
 
 
-def manipulate_csv_data(
-    file_path=None, output_filepath=None, operations=None, input_df=None
-):
+def manipulate_csv_data(file_path=None, output_filepath=None, operations=None, input_df=None):
+    logger = get_logger()
     """
     Perform a series of operations on a DataFrame which can be loaded from a CSV file, and save the resulting DataFrame to another CSV file.
 
@@ -467,9 +435,7 @@ def manipulate_csv_data(
                 else:  # titlecase
                     df[column_name] = df[column_name].str.title()
             elif action == "split":
-                df[operation["new_column_name"]] = df[column_name].str.split(
-                    pat=operation["delimiter"]
-                )
+                df[operation["new_column_name"]] = df[column_name].str.split(pat=operation["delimiter"])
             elif action == "substring":
                 start_index = operation["start_index"]
                 end_index = operation["end_index"]
@@ -479,9 +445,7 @@ def manipulate_csv_data(
                 else:
                     df[column_name] = df[column_name].str[start_index:end_index]
             elif action == "replace_string":
-                df[column_name] = df[column_name].replace(
-                    operation["old_text"], operation["new_text"], regex=True
-                )
+                df[column_name] = df[column_name].replace(operation["old_text"], operation["new_text"], regex=True)
             elif action == "filter_out_keywords":
                 keywords = [keyword.lower() for keyword in operation["keywords"]]
                 columns = operation["columns"]
@@ -496,9 +460,7 @@ def manipulate_csv_data(
             elif action == "language_filter":
                 languages = operation["languages"]
                 column = operation["column_name"]
-                mask = df[column].apply(
-                    lambda x: detect(x) in languages if x else False
-                )
+                mask = df[column].apply(lambda x: detect(x) in languages if x else False)
                 df = df[mask]
             elif action == "filter_for_keywords":
                 columns = operation["columns"]
@@ -506,11 +468,7 @@ def manipulate_csv_data(
                 skip_columns = operation.get("skip_columns", [])
                 mask = []
                 for index, row in df.iterrows():
-                    row_text = " ".join(
-                        str(row[column]).lower()
-                        for column in columns
-                        if column not in skip_columns
-                    )
+                    row_text = " ".join(str(row[column]).lower() for column in columns if column not in skip_columns)
                     if any(keyword in row_text for keyword in keywords):
                         mask.append(True)
                     else:
@@ -530,29 +488,32 @@ def manipulate_csv_data(
     try:
         df.to_csv(output_filepath, index=False)
     except Exception as e:
-        logger.error(
-            f"Error occurred while saving DataFrame to CSV: {e}", exc_info=True
-        )
+        logger.error(f"Error occurred while saving DataFrame to CSV: {e}", exc_info=True)
 
     return df
 
 
 # TXT
+def split_path(file_path):
+    directory = os.path.dirname(file_path)
+    split_name = os.path.splitext(os.path.basename(file_path))
+    filename_without_extension = split_name[0]
+    extension = split_name[1]
+    return directory, filename_without_extension, extension
+
+
 def insert_newlines(string, every=64):
+    logger = get_logger()
     logger.info(f"Formatted string.")
     return "\n".join(textwrap.wrap(string, every))
 
 
-def write_to_txt_file(
-    input_text, file_name, output_directory, mode="append", encoding="utf-8"
-):
+def write_to_txt_file(input_text, file_name, output_directory, mode="append", encoding="utf-8"):
     """
     Specify any mode except for 'append' for write and replace.
     """
     output_file_path = os.path.join(output_directory, f"{file_name}.txt")
-    with open(
-        output_file_path, "a" if mode == "append" else "w", encoding=encoding
-    ) as f:
+    with open(output_file_path, "a" if mode == "append" else "w", encoding=encoding) as f:
         f.write(("\n" if mode == "append" and f.tell() > 0 else "") + input_text)
 
 
@@ -578,6 +539,7 @@ def open_txt_file(file_path):
 
 # IMAGE
 def get_image_size(image_obj):
+    logger = get_logger()
     width, height = image_obj.size
     logger.debug(f"Image size: {width}px x {height}px\n{image_obj}")
     return width, height

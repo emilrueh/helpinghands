@@ -1,7 +1,4 @@
 from ..utility.logger import get_logger
-
-logger = get_logger()
-
 from ..utility.data import backup_df
 
 import time, requests, os, pandas as pd
@@ -9,6 +6,7 @@ import openai
 
 
 def call_gpt(api_key, gpt_model=3, prompt="How are you?", input_text=""):
+    logger = get_logger()
     if api_key:
         # Set your OpenAI API key
         openai.api_key = api_key
@@ -74,6 +72,7 @@ def gpt_loop(
     output_file_name="gpt",
     output_file_directory=None,
 ):
+    logger = get_logger()
     tolerance = tolerance_pct / 100
 
     if char_max is not None and char_min is None:

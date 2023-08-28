@@ -1,7 +1,5 @@
 from ..utility.logger import get_logger
 
-logger = get_logger()
-
 from dotenv import load_dotenv
 import os
 import sys
@@ -16,6 +14,7 @@ def load_settings(
     remote_env="DOCKER_ENV",
     default_settings_file="data/settings.json",
 ):
+    logger = get_logger()
     settings_path = settings_file if settings_file else default_settings_file
 
     # Initialize an empty dictionary for secrets
@@ -44,9 +43,7 @@ def load_settings(
                 else:
                     logger.warning(f"Missing environment variable: {secret_key}")
 
-            logger.debug(
-                colored(f"Loaded secrets: {', '.join(secrets_keys_list)}", "cyan")
-            )
+            logger.debug(colored(f"Loaded secrets: {', '.join(secrets_keys_list)}", "cyan"))
 
         # printing of the settings_path for debugging but changing to info for docker env
         logger.info(f"settings_path = {settings_path}")
