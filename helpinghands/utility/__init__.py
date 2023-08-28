@@ -18,6 +18,7 @@ from .data import (
     replace_values,
     contains_gmaps,
     manipulate_csv_data,
+    split_path,
     insert_newlines,
     write_to_txt_file,
     load_text_from_file,
@@ -41,6 +42,7 @@ from .helper import (
 try:
     from .web import (
         WebConfig,
+        open_website,
         setup_browser,
         get_website,
         setup_proxy_simple,
