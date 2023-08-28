@@ -99,7 +99,7 @@ def open_website(
 
             # ROTATING IP
             if with_proxy and has_internet:
-                logger.info("|------ R O T A T I N G   IP ------|")
+                logger.info("\n|----- R O T A T I N G   IP -----|\n")
                 BROWSER.quit()
                 BROWSER = None
                 WAIT = None
