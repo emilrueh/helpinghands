@@ -6,7 +6,7 @@ from typing import Type
 
 
 # EXCEPTIONS
-def log_exception(e: BaseException, log_level: str = "warning", use_traceback=False, tb_limit=4) -> str:
+def log_exception(e: BaseException, log_level: str = "warning", verbose=False, tb_limit=4) -> str:
     logger = get_logger()
     """
     Logs an exception with a specified log level.
@@ -20,7 +20,7 @@ def log_exception(e: BaseException, log_level: str = "warning", use_traceback=Fa
     """
     message = f"{type(e).__name__}: {str(e).split('  ')[0]}"
 
-    if use_traceback:
+    if verbose:
         tb_str = traceback.format_exception(type(e), e, e.__traceback__, limit=tb_limit)
         trace = "\n".join(tb_str)
         traceback_message = f"\n\n--- Stack Trace ---\n{trace}\n--------------------\n"
