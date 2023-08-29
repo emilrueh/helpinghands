@@ -30,3 +30,11 @@ class TokenBucket:
         delta = now - self.timestamp
         self._tokens = min(self.capacity, self._tokens + self.fill_rate * delta)
         self.timestamp = now
+
+
+def api_rate_limit_wait(bucket):
+    wait_time = bucket.consume(1)  # Consume 1 token for API REQUEST
+    if wait_time > 0:
+        return wait_time
+    else:
+        return 0
