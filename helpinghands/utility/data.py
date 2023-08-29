@@ -1,21 +1,21 @@
 from ..utility.logger import get_logger
+from ..utility.tokenbucket import api_rate_limit_wait
 
 import pandas as pd
-import json
-import tempfile
-import shutil
-import os
-from pathlib import Path
-import uuid
 import numpy as np
-from langdetect import detect
-from collections import Counter
-import re
-import textwrap
-from termcolor import colored
-import platform, subprocess, requests
+
+import json, re, os, subprocess, requests, time
+import tempfile, shutil, textwrap, platform, uuid
+
+from pathlib import Path
+from urllib.parse import urlparse
+
 from io import BytesIO
 from PIL import Image
+
+from langdetect import detect
+from collections import Counter
+from termcolor import colored
 
 
 # general data work
@@ -554,3 +554,37 @@ def get_image(source):
     else:
         raise ValueError("Invalid URL or file path.")
     return image_obj
+
+
+def image_to_bytes(image_source, max_attempts=3, file_type="JPEG"):
+    logger = get_logger()
+
+    is_url = bool(urlparse(image_source).netloc)
+
+    for attempt in range(max_attempts):
+        time.sleep(0.3)
+        try:
+            if is_url:
+                response = requests.get(image_source)
+                if response.status_code != 200:
+                    raise Exception("Bad status code")
+                img = Image.open(BytesIO(response.content))
+            else:
+                if not os.path.isfile(image_source):
+                    raise Exception("File not found")
+                img = Image.open(image_source)
+
+            if img.mode == "P":
+                img = img.convert("RGBA")
+
+            with BytesIO() as output:
+                img.convert("RGB").save(output, file_type)
+                output.seek(0)
+                return output.read()
+
+        except Exception as e:
+            logger.warning(f"Attempt {attempt + 1} failed with error: {e}. Retrying...")
+
+            if attempt == max_attempts - 1:
+                logger.warning(f"All attempts failed. Returning None.")
+                return None
