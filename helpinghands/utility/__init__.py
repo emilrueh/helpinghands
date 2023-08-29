@@ -26,6 +26,8 @@ from .data import (
     get_image_size,
     get_image,
     image_to_bytes,
+    get_file_size,
+    compress_image,
 )
 from .settings import load_settings
 from .logger import config_logger, LOGGER_NAME
