@@ -628,7 +628,7 @@ def get_file_size(source, unit="KB"):
     return convert_byte_sizes(size, unit)
 
 
-def compress_image(source, output_dir=None, quality=100, unit="KB"):
+def compress_image(source, output_dir=None, quality=80, unit="KB"):
     logger = get_logger()
 
     is_bytes = isinstance(source, dict)  # dict as image_to_bytes returns in dict
@@ -672,12 +672,12 @@ def compress_image(source, output_dir=None, quality=100, unit="KB"):
             input_filename = os.path.basename(source)
             input_name, input_ext = os.path.splitext(input_filename)
         else:
-            input_name = f"{int(time.time())}_{random.randint(0, 9999)}"
-            input_ext = f".{img_format.lower}" if img_format else ".jpg"
+            input_name = str(uuid.uuid4())[:8]
+            input_ext = f".{img_format.lower()}" if img_format else ".jpeg"
 
-        index = 1
+        index = 0
         while True:
-            output_filename = f"{input_name}_comp{index}{input_ext}"
+            output_filename = f"{input_name}_comp-{quality}{f'_{index}' if index else ''}{input_ext}"
             output_path = os.path.join(output_dir, output_filename)
             if not os.path.exists(output_path):
                 break
