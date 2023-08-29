@@ -1,14 +1,17 @@
 from ..utility.logger import get_logger
 from ..utility.tokenbucket import api_rate_limit_wait
+from ..utility.helper import log_exception
+from ..utility.decorator import retry
 
 import pandas as pd
 import numpy as np
 
-import json, re, os, subprocess, requests, time
+import json, re, os, subprocess, requests, time, random
 import tempfile, shutil, textwrap, platform, uuid
 
 from pathlib import Path
 from urllib.parse import urlparse
+from base64 import b64decode
 
 from io import BytesIO
 from PIL import Image
@@ -16,6 +19,9 @@ from PIL import Image
 from langdetect import detect
 from collections import Counter
 from termcolor import colored
+
+from requests.exceptions import ConnectionError, Timeout
+from PIL import UnidentifiedImageError
 
 
 # general data work
@@ -537,6 +543,14 @@ def open_txt_file(file_path):
         print(f"An error occurred: {str(e)}")
 
 
+def convert_byte_sizes(size_in_bytes, unit="KB"):
+    if unit == "KB":
+        return size_in_bytes / 1024
+    elif unit == "MB":
+        return size_in_bytes / (1024 * 1024)
+    return size_in_bytes
+
+
 # IMAGE
 def get_image_size(image_obj):
     logger = get_logger()
@@ -545,46 +559,132 @@ def get_image_size(image_obj):
     return width, height
 
 
+@retry((ConnectionError, Timeout, UnidentifiedImageError), "simple")
 def get_image(source):
-    if source.startswith("http"):
+    logger = get_logger()
+    """
+    Accepts: path, url, base64, bytes
+    """
+    img_obj = None  # Default
+    img_format = None  # Default
+
+    if isinstance(source, bytes):
+        img_obj = Image.open(BytesIO(source))
+        img_format = img_obj.format
+    elif bool(urlparse(source).netloc):
         response = requests.get(source)
-        image_obj = Image.open(BytesIO(response.content))
+        img_obj = Image.open(BytesIO(response.content))
+        img_format = img_obj.format
     elif os.path.exists(source):
-        image_obj = Image.open(source)
+        img_obj = Image.open(source)
+        img_format = source.split(".")[-1].upper()
+    elif source.startswith("data:image"):
+        image_data = b64decode(source.split(",")[1])
+        img_obj = Image.open(BytesIO(image_data))
+        img_format = img_obj.format
     else:
-        raise ValueError("Invalid URL or file path.")
-    return image_obj
+        raise ValueError("Invalid source.")
+
+    if img_format.upper() == "JPG":
+        img_format = "JPEG"
+
+    logger.debug(f"img_obj = {img_obj}\nimg_format = {img_format}")
+
+    return img_obj, img_format
 
 
-def image_to_bytes(image_source, max_attempts=3, file_type="JPEG"):
+def image_to_bytes(image_source, file_type="JPEG"):
+    try:
+        img, img_format = get_image(image_source)
+
+        if img_format.upper() != file_type:
+            img_format = file_type
+
+        if img.mode == "P":
+            img = img.convert("RGBA")
+        with BytesIO() as output:
+            img.convert("RGB").save(output, img_format)
+            output.seek(0)
+            return {"image_bytes": output.read(), "image_format": img_format}
+
+    except Exception as e:
+        log_exception(e, verbose=True)
+        return {"image_bytes": None, "image_format": None}
+
+
+def get_file_size(source, unit="KB"):
+    size = 0
+
+    if isinstance(source, bytes):
+        size = len(source)
+    elif os.path.exists(source):
+        size = os.path.getsize(source)
+    elif bool(urlparse(source).netloc):
+        response = requests.head(source)
+        if "content-length" in response.headers:
+            size = int(response.headers.get("content-length", 0))
+        else:
+            return 0  # content-length header not available
+    return convert_byte_sizes(size, unit)
+
+
+def compress_image(source, output_dir=None, quality=100, unit="KB"):
     logger = get_logger()
 
-    is_url = bool(urlparse(image_source).netloc)
+    is_bytes = isinstance(source, dict)  # dict as image_to_bytes returns in dict
+    is_base64 = isinstance(source, str) and source.startswith("data:image")
+    path_exists = os.path.exists(source) if not is_bytes else False
 
-    for attempt in range(max_attempts):
-        time.sleep(0.3)
-        try:
-            if is_url:
-                response = requests.get(image_source)
-                if response.status_code != 200:
-                    raise Exception("Bad status code")
-                img = Image.open(BytesIO(response.content))
-            else:
-                if not os.path.isfile(image_source):
-                    raise Exception("File not found")
-                img = Image.open(image_source)
+    if is_bytes:
+        img_obj = Image.open(BytesIO(source["image_bytes"]))
+        img_format = source["image_format"]
+        source = source["image_bytes"]
+        original_size = convert_byte_sizes(len(source), unit)
+    else:
+        img_obj, img_format = get_image(source)
+        original_size = get_file_size(source, unit)
 
-            if img.mode == "P":
-                img = img.convert("RGBA")
+    with BytesIO() as output:
+        img_obj.save(output, format=img_format, quality=quality)
+        compressed_data = output.getvalue()
 
-            with BytesIO() as output:
-                img.convert("RGB").save(output, file_type)
-                output.seek(0)
-                return output.read()
+    compressed_size = get_file_size(compressed_data, unit)
 
-        except Exception as e:
-            logger.warning(f"Attempt {attempt + 1} failed with error: {e}. Retrying...")
+    # Debug Line
+    if is_bytes:
+        logger.debug(f"Bytes Equal: {compressed_data == source}")
 
-            if attempt == max_attempts - 1:
-                logger.warning(f"All attempts failed. Returning None.")
-                return None
+    if compressed_size >= original_size:
+        logger.info(
+            f"Didn't compress as the original img size is smaller than or equal to the compressed size. ({round(original_size, 2)} {unit} -> {round(compressed_size, 2)} {unit})"
+        )
+        return img_obj
+
+    reduction_percent = ((original_size - compressed_size) / original_size) * 100
+
+    logger.info(
+        f"Compressed: {round(original_size, 2)} {unit} -> {round(compressed_size, 2)} {unit} (-{round(reduction_percent, 2)}%)"
+    )
+
+    if output_dir and not is_base64 and not is_bytes:
+        # creating output_path
+        if path_exists:
+            input_filename = os.path.basename(source)
+            input_name, input_ext = os.path.splitext(input_filename)
+        else:
+            input_name = f"{int(time.time())}_{random.randint(0, 9999)}"
+            input_ext = f".{img_format.lower}" if img_format else ".jpg"
+
+        index = 1
+        while True:
+            output_filename = f"{input_name}_comp{index}{input_ext}"
+            output_path = os.path.join(output_dir, output_filename)
+            if not os.path.exists(output_path):
+                break
+            index += 1
+
+        with open(output_path, "wb") as f:
+            f.write(compressed_data)
+        return output_path
+    else:
+        return compressed_data
