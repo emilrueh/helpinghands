@@ -1,4 +1,5 @@
 from ..utility.logger import get_logger
+from ..utility.helper import log_exception
 
 import functools, time
 
@@ -60,7 +61,7 @@ def retry(exceptions, time_mode: str = "medium"):
                         raise
                     else:
                         logger.warning(
-                            f"{str(e).split('  ')[0]}: Retrying attempt {attempt+1} in {round(wait_time, 2)} seconds..."
+                            f"{log_exception(e, verbose=False)}\nRetrying attempt {attempt+1} in {round(wait_time, 2)} seconds..."
                         )
                         time.sleep(wait_time)
                         wait_time *= backoff_factor
