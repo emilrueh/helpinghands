@@ -12,6 +12,7 @@ import tempfile, shutil, textwrap, platform, uuid
 from pathlib import Path
 from urllib.parse import urlparse
 from base64 import b64decode
+import base64
 
 from io import BytesIO
 from PIL import Image
@@ -552,10 +553,10 @@ def convert_byte_sizes(size_in_bytes, unit="KB"):
 
 
 # IMAGE
-def get_image_size(image_obj):
+def get_image_res(image_obj):
     logger = get_logger()
     width, height = image_obj.size
-    logger.debug(f"Image size: {width}px x {height}px\n{image_obj}")
+    # logger.debug(f"Image resolution: {width}px x {height}px\n{image_obj}")
     return width, height
 
 
@@ -571,6 +572,10 @@ def get_image(source):
     if isinstance(source, bytes):
         img_obj = Image.open(BytesIO(source))
         img_format = img_obj.format
+    elif source.startswith("data:image"):
+        image_data = b64decode(source.split(",")[1])
+        img_obj = Image.open(BytesIO(image_data))
+        img_format = img_obj.format
     elif bool(urlparse(source).netloc):
         response = requests.get(source)
         img_obj = Image.open(BytesIO(response.content))
@@ -578,18 +583,13 @@ def get_image(source):
     elif os.path.exists(source):
         img_obj = Image.open(source)
         img_format = source.split(".")[-1].upper()
-    elif source.startswith("data:image"):
-        image_data = b64decode(source.split(",")[1])
-        img_obj = Image.open(BytesIO(image_data))
-        img_format = img_obj.format
     else:
         raise ValueError("Invalid source.")
 
     if img_format.upper() == "JPG":
         img_format = "JPEG"
 
-    logger.debug(f"img_obj = {img_obj}\nimg_format = {img_format}")
-
+    # logger.debug(f"img_obj = {img_obj}\nimg_format = {img_format}")
     return img_obj, img_format
 
 
@@ -612,11 +612,19 @@ def image_to_bytes(image_source, file_type="JPEG"):
         return {"image_bytes": None, "image_format": None}
 
 
+def bytes_to_base64(image_bytes, file_type="JPEG"):
+    base64_image = base64.b64encode(image_bytes).decode("utf-8")
+    base64_string = f"data:image/{file_type.lower()};base64,{base64_image}"
+    return base64_string
+
+
 def get_file_size(source, unit="KB"):
     size = 0
 
     if isinstance(source, bytes):
         size = len(source)
+    elif source.startswith("data:image"):
+        size = len(b64decode(source.split(",")[1]))
     elif os.path.exists(source):
         size = os.path.getsize(source)
     elif bool(urlparse(source).netloc):
@@ -640,6 +648,11 @@ def compress_image(source, output_dir=None, quality=80, unit="KB"):
         img_format = source["image_format"]
         source = source["image_bytes"]
         original_size = convert_byte_sizes(len(source), unit)
+    elif is_base64:
+        image_data = b64decode(source.split(",")[1])
+        img_obj = Image.open(BytesIO(image_data))
+        img_format = img_obj.format
+        original_size = len(image_data)
     else:
         img_obj, img_format = get_image(source)
         original_size = get_file_size(source, unit)
@@ -649,10 +662,6 @@ def compress_image(source, output_dir=None, quality=80, unit="KB"):
         compressed_data = output.getvalue()
 
     compressed_size = get_file_size(compressed_data, unit)
-
-    # Debug Line
-    if is_bytes:
-        logger.debug(f"Bytes Equal: {compressed_data == source}")
 
     if compressed_size >= original_size:
         logger.info(
