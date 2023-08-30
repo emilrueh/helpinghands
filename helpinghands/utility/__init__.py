@@ -23,9 +23,10 @@ from .data import (
     write_to_txt_file,
     load_text_from_file,
     open_txt_file,
-    get_image_size,
+    get_image_res,
     get_image,
     image_to_bytes,
+    bytes_to_base64,
     get_file_size,
     compress_image,
 )
