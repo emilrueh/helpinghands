@@ -107,6 +107,7 @@ def super_image_loop(
     output_files_dir=None,
     save_comparison=False,
     max_res=900,
+    sleep=1,
 ):
     logger = get_logger()
     model = load_model(model_name, scale)
@@ -133,7 +134,8 @@ def super_image_loop(
         data.at[i, input_column] = upscaled_file if upscaled_file else input_file
 
         logger.info(f"Row:{i} - {'Upscaled' if upscaled_file else 'Did not upscale'} image:\n{input_file}")
-
+        if sleep:
+            time.sleep(sleep)
         # Save DataFrame every 100 rows
         if output_files_dir is not None:
             if i % 100 == 0:
