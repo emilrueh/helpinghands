@@ -1,6 +1,7 @@
 from ..utility.logger import get_logger
 from ..utility.helper import log_exception
-from ..utility.data import backup_df, get_image, get_image_size
+from ..utility.data import backup_df, get_image, get_image_res
+from ..utility.decorator import time_execution
 
 from super_image import ImageLoader
 from super_image import DrlnModel, MsrnModel, EdsrModel
@@ -33,7 +34,7 @@ def super_image(
     max_res: int = 1000,  # squared
     model_name: str = "edsr-base",
     output_file_name: str = "scaled",
-    output_file_format: str = ".png",
+    output_file_format: str = "png",
     output_file_dir: str = "./",
     save_comparison: bool = False,
     model=None,
@@ -42,17 +43,17 @@ def super_image(
     logger = get_logger()
     if not max_res:
         logger.warning(f"Maximum resolution check switched off.")
-        max_res = "not set."
+        max_res = "unset"
     else:
         max_res = max_res * max_res
 
     if input_file:
-        image_obj = get_image(input_file)
-        width, height = get_image_size(image_obj)
+        image_obj, _ = get_image(input_file)
+        width, height = get_image_res(image_obj)
 
         if width * height >= max_res:
-            print(
-                f"{width}x{height} is large enough and does not need to be upscaled for this purpose as max_res is {max_res}"
+            logger.debug(
+                f"{width}x{height} is large enough and does not need to be upscaled for this purpose as higher than max_res which is {max_res}{'px' if max_res else '.'}"
             )
             return
         if width * height >= max_res * 0.7:
@@ -73,14 +74,16 @@ def super_image(
         inputs = ImageLoader.load_image(image)
         preds = model(inputs)
 
-        full_file_path = os.path.join(output_file_dir, f"{output_file_name}{scale}x{output_file_format}")
-
+        full_file_path = os.path.join(output_file_dir, f"{output_file_name}{scale}x.{output_file_format}")
         ImageLoader.save_image(preds, full_file_path)
         if save_comparison:
             ImageLoader.save_compare(inputs, preds, full_file_path.replace("x", "x_compare"))
 
+        return full_file_path
+
     except Exception as e:
         exception_name = log_exception(e)
+        return None
     finally:
         # time.sleep(wait_time)
         # Explicitly delete large objects to free up memory
@@ -93,68 +96,58 @@ def super_image(
         gc.collect()
 
 
+@time_execution(2, "minutes")
 def super_image_loop(
     data,
     input_column,
     scale=2,
     model_name="edsr-base",
-    output_file_name="upscale",
-    output_file_format=".png",
-    output_file_dir=None,
+    output_img_name="upscale",
+    output_img_format="png",
+    output_files_dir=None,
     save_comparison=False,
-    max_res=1000,
+    max_res=900,
 ):
     logger = get_logger()
     model = load_model(model_name, scale)
-
+    backup_file = os.path.join(output_files_dir, f"output_backup_{output_img_name.upper()}.csv")
     original_type = type(data)
-    if isinstance(data, pd.DataFrame):
-        data = data.to_dict(orient="records")
 
-    for i, row in enumerate(data):
+    for i, row in data.iterrows():
         input_file = row[input_column]
+        unique_output_file_name = f"{output_img_name}_{i}"
 
-        unique_output_file_name = f"{output_file_name}_{i}"
-        full_file_path = os.path.join(output_file_dir, f"{unique_output_file_name}{scale}x{output_file_format}")
-
-        super_image(
+        upscaled_file = super_image(
             input_file=input_file,
             scale=scale,
             max_res=max_res,
             model_name=model_name,
             output_file_name=unique_output_file_name,
-            output_file_format=output_file_format,
-            output_file_dir=output_file_dir,
+            output_file_format=output_img_format,
+            output_file_dir=output_files_dir,
             save_comparison=save_comparison,
             model=model,
             delete_model=False,
         )
 
-        row[input_column] = full_file_path
-        logger.info(f"Processed image for row {i}")
+        data.at[i, input_column] = upscaled_file if upscaled_file else input_file
 
-        backup_file = None
+        logger.info(f"Row:{i} - {'Upscaled' if upscaled_file else 'Did not upscale'} image:\n{input_file}")
+
         # Save DataFrame every 100 rows
-        if output_file_dir is not None:
-            backup_file = os.path.join(output_file_dir, f"output_backup_{output_file_name.upper()}.csv")
+        if output_files_dir is not None:
             if i % 100 == 0:
-                backup_df(data, backup_file, i, output_file_name.upper(), original_type)
+                backup_df(data, backup_file, i, output_img_name.upper(), original_type)
 
     # cleaning model after last iteration
     model = None
     del model
     gc.collect()
 
-    data_final = pd.DataFrame.from_records(data) if original_type is pd.DataFrame else pd.DataFrame(data)
-
     # Save the last batch
-    if backup_file and output_file_dir is not None:
+    if backup_file and output_files_dir is not None:
         backup_file_final = backup_file.rsplit(".", 1)[0] + "_Final." + backup_file.rsplit(".", 1)[1]
-        data_final.to_csv(backup_file_final, index=False)
-        logger.info(f"Final file saved at path: {backup_file_final}")
-
-    # Convert back to DataFrame before returning
-    if original_type is pd.DataFrame:
-        data = pd.DataFrame.from_records(data)
+        data.to_csv(backup_file_final, index=False)
+        logger.info(f"Final CSV saved at: {backup_file_final}")
 
     return data
