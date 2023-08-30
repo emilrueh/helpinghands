@@ -71,10 +71,11 @@ def retry(exceptions, time_mode: str = "medium"):
     return decorator
 
 
-def time_execution(logger, ndigits=3, time_mode="seconds", log_mode="info"):
+def time_execution(ndigits=3, time_mode="seconds", log_mode="info"):
     def decorator(func):
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
+            logger = get_logger()
             logger.info(f"Executing {func.__name__}...")
             start_time = time.time()
             result = func(*args, **kwargs)
