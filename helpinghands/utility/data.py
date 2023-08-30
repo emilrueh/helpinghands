@@ -572,13 +572,13 @@ def get_image(source):
     if isinstance(source, bytes):
         img_obj = Image.open(BytesIO(source))
         img_format = img_obj.format
-    elif source.startswith("data:image"):
-        image_data = b64decode(source.split(",")[1])
-        img_obj = Image.open(BytesIO(image_data))
-        img_format = img_obj.format
     elif bool(urlparse(source).netloc):
         response = requests.get(source)
         img_obj = Image.open(BytesIO(response.content))
+        img_format = img_obj.format
+    elif source.startswith("data:image"):
+        image_data = b64decode(source.split(",")[1])
+        img_obj = Image.open(BytesIO(image_data))
         img_format = img_obj.format
     elif os.path.exists(source):
         img_obj = Image.open(source)
