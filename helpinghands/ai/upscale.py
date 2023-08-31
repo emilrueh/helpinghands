@@ -47,8 +47,13 @@ def super_image(
     else:
         max_res = max_res * max_res
 
-    if input_file:
-        image_obj, _ = get_image(input_file)
+    if input_file and input_file != "NaN":
+        try:
+            image_obj, _ = get_image(input_file)
+        except ValueError as e:
+            log_exception(e)
+            return None
+
         width, height = get_image_res(image_obj)
 
         if width * height >= max_res:
