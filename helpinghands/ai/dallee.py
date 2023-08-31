@@ -3,7 +3,11 @@ from ..utility.data import backup_df
 
 import requests
 import pandas as pd
-import os
+import os, time
+
+
+class ContentPolicyViolationError(Exception):
+    pass
 
 
 def generate_image(
@@ -31,7 +35,7 @@ def generate_image(
 
     if response.status_code != 200 or "data" not in response_json:
         if "error" in response_json and response_json["error"]["code"] == "content_policy_violation":
-            logger.error(f"Content policy violation with prompt: {prompt}")
+            raise ContentPolicyViolationError(f"Content policy violation with prompt: {prompt}")
         else:
             logger.error(f"Request rejected: {response.text}")
         return ["No image generated"]
@@ -92,21 +96,31 @@ def dallee_loop(
             or row.get(column_for_output) == ""
             or str(row.get(column_for_output)).strip() == ""
         ):
-            logger.debug(f"Skipping row {row} as it already contains photo")
+            logger.debug(f"Skipping row {i} as it already contains photo")
             continue
 
         # Concatenate input columns to form the prompt
-        prompt = f'{" ".join(str(row[col]) for col in columns_for_input)} {what}, {", ".join(attributes)}'
+        column_content = " ".join(str(row[col]) for col in columns_for_input)
+        arg_content = f'{what}, {", ".join(attributes)}'
+        prompt = f"{column_content} {arg_content}"
 
-        image_urls_or_filepaths = generate_image(
-            api_key,
-            prompt,
-            num_images,
-            image_size,
-            file_name=f"{output_file_name}_{i}" if output_file_name else None,
-            file_extension=output_file_extension,
-            file_directory=output_file_directory,
-        )
+        attempt = 0
+        while attempt < 2:
+            try:
+                image_urls_or_filepaths = generate_image(
+                    api_key,
+                    prompt,
+                    num_images,
+                    image_size,
+                    file_name=f"{output_file_name}_{i}" if output_file_name else None,
+                    file_extension=output_file_extension,
+                    file_directory=output_file_directory,
+                )
+            except ContentPolicyViolationError:
+                prompt = arg_content
+            finally:
+                time.sleep(1)
+                attempt += 1
 
         row[column_for_output] = image_urls_or_filepaths[0]
         logger.info(f"Event: {i + 1} | Index: {i}\n{row[column_for_output]}")
