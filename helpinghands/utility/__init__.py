@@ -29,6 +29,7 @@ from .data import (
     bytes_to_base64,
     get_file_size,
     compress_image,
+    add_random_files,
 )
 from .settings import load_settings
 from .logger import config_logger, LOGGER_NAME

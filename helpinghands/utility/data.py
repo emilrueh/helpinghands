@@ -562,7 +562,6 @@ def get_image_res(image_obj):
 
 @retry((ConnectionError, Timeout, UnidentifiedImageError), "simple")
 def get_image(source):
-    logger = get_logger()
     """
     Accepts: path, url, base64, bytes
     """
@@ -697,3 +696,15 @@ def compress_image(source, output_dir=None, quality=80, unit="KB"):
         return output_path
     else:
         return compressed_data
+
+
+def add_random_files(df, column_name, file_dir):
+    files = os.listdir(file_dir)
+    mask = df[column_name].isna() | (df[column_name] == 'NaN')
+    
+    for idx in df[mask].index:
+        random_file = random.choice(files)
+        full_path = os.path.join(file_dir, random_file)
+        df.at[idx, column_name] = full_path
+
+    return df
