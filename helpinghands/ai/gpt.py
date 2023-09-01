@@ -1,11 +1,24 @@
 from ..utility.logger import get_logger
 from ..utility.data import backup_df
+from ..utility.decorator import retry
 
 import time, requests, os, pandas as pd
 import openai
 
 
-def call_gpt(api_key, gpt_model=3, prompt="How are you?", input_text=""):
+@retry(
+    (
+        openai.error.RateLimitError,
+        requests.exceptions.ConnectionError,
+        openai.error.APIError,
+        openai.error.ServiceUnavailableError,
+        openai.error.APIConnectionError,
+        requests.exceptions.ReadTimeout,
+        openai.error.Timeout,
+    ),
+    "simple",
+)
+def call_gpt(api_key, gpt_model=3, prompt="How are you?", input_text="", timeout=30):
     logger = get_logger()
     if api_key:
         # Set your OpenAI API key
@@ -21,42 +34,27 @@ def call_gpt(api_key, gpt_model=3, prompt="How are you?", input_text=""):
     # Concatenate the prompt and input input_text
     full_prompt = prompt + str(input_text)
 
-    attempts = 0
-    while attempts < 5:
-        try:
-            # Send the request to the OpenAI API
-            logger.info(f"Calling GPT-{gpt_model}...")
-            response = openai.ChatCompletion.create(
-                model=f"gpt-{gpt_model}",
-                messages=[
-                    {"role": "system", "content": "You are a helpful assistant."},
-                    {"role": "user", "content": full_prompt},
-                ],
-            )
-            logger.debug(f"API response: {response}")
+    # Send the request to the OpenAI API
+    logger.info(f"Calling GPT-{gpt_model}...")
+    response = openai.ChatCompletion.create(
+        model=f"gpt-{gpt_model}",
+        messages=[
+            {"role": "system", "content": "You are a helpful assistant."},
+            {"role": "user", "content": full_prompt},
+        ],
+        request_timeout=timeout,
+    )
+    logger.debug(f"API response: {response}")
 
-            # Extract the generated summary from the API response
-            output_text = response.choices[0].message.content
+    # Extract the generated summary from the API response
+    output_text = response.choices[0].message.content
 
-            # print(f"\n{output_text}")
+    # print(f"\n{output_text}")
 
-            # Remove non-ASCII characters from the output_text
-            output_text = output_text.encode("ascii", "ignore").decode()
+    # Remove non-ASCII characters from the output_text
+    output_text = output_text.encode("ascii", "ignore").decode()
 
-            return output_text
-
-        except (
-            openai.error.RateLimitError,
-            requests.exceptions.ConnectionError,
-            openai.error.APIError,
-            openai.error.ServiceUnavailableError,
-            openai.error.APIConnectionError,
-            requests.exceptions.ReadTimeout,
-        ) as e:
-            logger.warning(f"{type(e).__name__} encountered. New API call attempt in {(2**attempts)} seconds...\n{e}")
-            time.sleep((2**attempts))
-            attempts += 1
-    return f"No valid response from OpenAI API after {attempts} attempts!"
+    return output_text
 
 
 def gpt_loop(
