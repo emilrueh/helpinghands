@@ -55,7 +55,7 @@ def generate_image(
             file_path = os.path.join(file_directory, f"{file_name}_{i}{file_extension}")
             with open(file_path, "wb") as f:
                 f.write(image_response.content)
-                logger.info(f"Image saved at {file_path}")
+                logger.debug(f"Image saved at {file_path}")
 
             local_file_paths.append(file_path)
 
@@ -116,6 +116,7 @@ def dallee_loop(
                     file_extension=output_file_extension,
                     file_directory=output_file_directory,
                 )
+                break
             except ContentPolicyViolationError:
                 prompt = arg_content
             finally:
