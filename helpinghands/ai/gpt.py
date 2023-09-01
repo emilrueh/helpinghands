@@ -25,6 +25,7 @@ def call_gpt(api_key, gpt_model=3, prompt="How are you?", input_text=""):
     while attempts < 5:
         try:
             # Send the request to the OpenAI API
+            logger.info(f"Calling GPT-{gpt_model}...")
             response = openai.ChatCompletion.create(
                 model=f"gpt-{gpt_model}",
                 messages=[
@@ -32,6 +33,7 @@ def call_gpt(api_key, gpt_model=3, prompt="How are you?", input_text=""):
                     {"role": "user", "content": full_prompt},
                 ],
             )
+            logger.debug(f"API response: {response}")
 
             # Extract the generated summary from the API response
             output_text = response.choices[0].message.content
@@ -67,7 +69,7 @@ def gpt_loop(
     char_max=None,
     char_min=None,
     to_remove=None,
-    max_attempts=6,
+    max_attempts=4,
     tolerance_pct=5,
     output_file_name="gpt",
     output_file_directory=None,
@@ -91,12 +93,13 @@ def gpt_loop(
         best_output_length = float("inf")
 
         while attempts < max_attempts:
-            api_output = call_gpt(api_key, gpt_model, prompt, row[column_for_input])
+            api_output = call_gpt(api_key, gpt_model, prompt, row[column_for_input])  # CALL
+            time.sleep(1)
             attempts += 1
 
             # Handle the case when api_output is None
             if api_output is None or api_output == "":
-                logger.error(f"API output is '{api_output}' at row {i}")
+                logger.error(f"API output is 'None' at row {i}")
                 break
 
             if abs(len(api_output) - char_max) < abs(best_output_length - char_max):
@@ -106,8 +109,8 @@ def gpt_loop(
             if (char_min * (1 - tolerance)) <= len(api_output) <= (char_max * (1 + tolerance)):
                 break
 
-            logger.warning(
-                f"Output length not within limits {char_min * (1 - tolerance)} and {char_max * (1 + tolerance)} with {len(api_output)} characters at row {i}. Trying again with attempt {attempts}..."
+            logger.debug(
+                f"Output length not within limits {round(char_min * (1 - tolerance))} and {round(char_max * (1 + tolerance))} with {len(api_output)} characters at row {i}. Trying again with attempt {attempts}..."
             )
             time.sleep(0.5)
 
@@ -132,11 +135,9 @@ def gpt_loop(
 
         # Convert back to DataFrame if necessary
         if isinstance(data, list):
-            data_final = pd.DataFrame(data)
-        else:
-            data_final = data
+            data = pd.DataFrame(data)
 
-        data_final.to_csv(backup_file_final, index=False)
+        data.to_csv(backup_file_final, index=False)
         logger.info(f"Final file saved at path: {backup_file_final}")
 
     return data
