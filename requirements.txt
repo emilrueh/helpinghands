@@ -3,13 +3,17 @@ keyboard==0.13.5
 langdetect==1.0.9
 nordvpn_switcher==0.3.0
 numpy==1.25.1
+openai==0.27.8
 pandas==2.0.3
+Pillow==10.0.0
 pydub==0.25.1
 python-dotenv==1.0.0
 Requests==2.31.0
+scipy==1.11.2
 selenium==4.11.2
 selenium_wire==5.1.0
 setuptools==65.5.0
 sounddevice==0.4.6
 soundfile==0.12.1
+super_image==0.1.7
 termcolor==2.3.0
