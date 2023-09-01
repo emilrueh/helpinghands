@@ -95,6 +95,7 @@ def dallee_loop(
             pd.isnull(row.get(column_for_output))
             or row.get(column_for_output) == ""
             or str(row.get(column_for_output)).strip() == ""
+            or str(row.get(column_for_output)).strip().lower() == "nan"
         ):
             logger.debug(f"Skipping row {i} as it already contains photo")
             continue
