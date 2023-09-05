@@ -1,5 +1,4 @@
 from ..utility.logger import get_logger
-from ..utility.tokenbucket import api_rate_limit_wait
 from ..utility.helper import log_exception
 from ..utility.decorator import retry
 
@@ -7,7 +6,7 @@ import pandas as pd
 import numpy as np
 
 import json, re, os, subprocess, requests, time, random
-import tempfile, shutil, textwrap, platform, uuid
+import tempfile, shutil, textwrap, platform, uuid, glob
 
 from pathlib import Path
 from urllib.parse import urlparse
@@ -700,11 +699,31 @@ def compress_image(source, output_dir=None, quality=80, unit="KB"):
 
 def add_random_files(df, column_name, file_dir):
     files = os.listdir(file_dir)
-    mask = df[column_name].isna() | (df[column_name] == 'NaN')
-    
+    mask = df[column_name].isna() | (df[column_name] == "NaN")
+
     for idx in df[mask].index:
         random_file = random.choice(files)
         full_path = os.path.join(file_dir, random_file)
         df.at[idx, column_name] = full_path
 
     return df
+
+
+def clean_directory(dir_path, file_extensions=["*.csv", "*.json", "*.jpg", "*.jpeg", "*.png"]):
+    logger = get_logger()
+
+    counts = {}
+    for ext in file_extensions:
+        files_to_delete = glob.glob(os.path.join(dir_path, ext))
+        if not files_to_delete:
+            continue
+
+        counts[ext] = len(files_to_delete)
+
+        for file in files_to_delete:
+            try:
+                os.remove(file)
+            except PermissionError:
+                logger.warning(f"Permission denied: Couldn't delete {file}")
+
+    logger.info(f"Deleted {counts} files in {os.path.basename(dir_path)}")

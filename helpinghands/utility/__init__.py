@@ -30,6 +30,7 @@ from .data import (
     get_file_size,
     compress_image,
     add_random_files,
+    clean_directory,
 )
 from .settings import load_settings
 from .logger import config_logger, LOGGER_NAME
