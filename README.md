@@ -108,24 +108,51 @@ To install the HelpingHands library, you can use pip:
 
 ## Usage
 
-Here's an example of how to use the HelpingHands library:
+Here's an example of how to use the HelpingHands library with an example definition of a function for audio transcription using the dallee model from OpenAI:
 
 ```python
 from helpinghands.utility.logger import config_logger
 
 logger = config_logger()
 
-from helpinghands.audio import sounds
-from helpinghands.utility.decorator import retry
-from helpinghands.openai import call_whisper
+from helpinghands.utility.settings import load_settings
 
-@retry
-def func(api_key, action, mp3_path):
+from helpinghands.audio import sounds
+from helpinghands.utility.decorator import retry, time_execution
+from helpinghands.ai import call_whisper
+from helpinghands.utility.helper import log_exception
+
+import os
+
+base_dir = os.path.dirname(__file__)
+settings_dir = os.path.join(base_dir, "settings")
+audio_dir = os.path.join(base_dir, "audio")
+
+mp3_file = os.path.join(audio_dir, "recording.mp3")
+settings_file = os.path.join(settings_dir, "settings.json")
+
+settings = load_settings(
+    settings_file=settings_file,
+    secrets_keys_list=["API_KEY"],
+)
+
+openai_api_key = settings.get("API_KEY")
+
+
+@time_execution(2, time_mode="seconds")
+@retry((Exception), "simple")
+def transcribe_audio(api_key, mp3_path, action="transcribe"):
     try:
-        output = call_whisper(api_key, action, mp3_path)
-    except:
+        output = call_whisper(api_key, mp3_path, action)
+        return output
+    except Exception as e:
         sounds.uhoh()
-    return output
+        exception_name = log_exception(e)
+        raise
+  
+
+transcript = transcribe_audio(openai_api_key, mp3_file)
+logger.info(f"Transcript:\n{transcript}")
 ```
 
 ## License
