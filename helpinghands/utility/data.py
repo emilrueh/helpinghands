@@ -50,7 +50,9 @@ def backup_data(input_data, backup_directory, input_name=None):
         file_extension = ".csv"
     elif isinstance(input_data, str) and input_data.endswith((".csv", ".txt", ".json")):
         file_extension = os.path.splitext(input_data)[1]
-    elif isinstance(input_data, dict) or (isinstance(input_data, str) and input_data.endswith(".json")):
+    elif isinstance(input_data, dict) or (
+        isinstance(input_data, str) and input_data.endswith(".json")
+    ):
         file_extension = ".json"
     elif isinstance(input_data, str):
         file_extension = ".txt"
@@ -94,7 +96,9 @@ def backup_df(data, path, i, prefix, original_type):
     backup_file_temp = path.rsplit(".", 1)[0] + f"_{prefix}_{i//100}." + path.rsplit(".", 1)[1]
 
     data_temp = (
-        pd.DataFrame.from_records(data[: i + 1]) if original_type is pd.DataFrame else pd.DataFrame(data[: i + 1])
+        pd.DataFrame.from_records(data[: i + 1])
+        if original_type is pd.DataFrame
+        else pd.DataFrame(data[: i + 1])
     )
 
     data_temp.to_csv(backup_file_temp, index=False)
@@ -283,7 +287,9 @@ def map_keywords_to_categories(keywords, category_dict):
     return ",".join(categories)
 
 
-def find_and_assign_tags(df, tags, columns_to_check, output_column, default_value, standalone_tags=None):
+def find_and_assign_tags(
+    df, tags, columns_to_check, output_column, default_value, standalone_tags=None
+):
     def find_tags(row):
         row_values = " ".join(str(row[col]) for col in columns_to_check)
         text = row_values.lower()
@@ -292,7 +298,9 @@ def find_and_assign_tags(df, tags, columns_to_check, output_column, default_valu
         # This part handles special cases where you need the tag to match the entire word.
         if standalone_tags:
             # Update the regular expression to consider word boundaries properly
-            found_tags = [tag for tag in standalone_tags if re.search(rf"(^|\s){tag.lower()}(\s|$)", text)]
+            found_tags = [
+                tag for tag in standalone_tags if re.search(rf"(^|\s){tag.lower()}(\s|$)", text)
+            ]
 
         # For other tags, the substring matching is used.
         other_tags = set(tags) - set(standalone_tags)
@@ -313,7 +321,9 @@ def add_relevant_tags(df, column_to_check, column_to_apply, categories_ordered, 
         if pd.isna(row[column_to_check]) or not isinstance(row[column_to_check], str):
             return default
 
-        categories_in_row = [category.strip().lower() for category in row[column_to_check].split(",")]
+        categories_in_row = [
+            category.strip().lower() for category in row[column_to_check].split(",")
+        ]
 
         for category in categories_ordered_lower:
             if category in categories_in_row:
@@ -337,7 +347,10 @@ def replace_values(df, column_to_check, list_of_values, value_to_replace_with):
         if not isinstance(row_value, str):
             return row_value
 
-        if any((val if isinstance(val, str) else str(val)).lower() in row_value.lower() for val in list_of_values):
+        if any(
+            (val if isinstance(val, str) else str(val)).lower() in row_value.lower()
+            for val in list_of_values
+        ):
             return value_to_replace_with
 
         return row_value
@@ -441,7 +454,9 @@ def manipulate_csv_data(file_path=None, output_filepath=None, operations=None, i
                 else:  # titlecase
                     df[column_name] = df[column_name].str.title()
             elif action == "split":
-                df[operation["new_column_name"]] = df[column_name].str.split(pat=operation["delimiter"])
+                df[operation["new_column_name"]] = df[column_name].str.split(
+                    pat=operation["delimiter"]
+                )
             elif action == "substring":
                 start_index = operation["start_index"]
                 end_index = operation["end_index"]
@@ -451,7 +466,9 @@ def manipulate_csv_data(file_path=None, output_filepath=None, operations=None, i
                 else:
                     df[column_name] = df[column_name].str[start_index:end_index]
             elif action == "replace_string":
-                df[column_name] = df[column_name].replace(operation["old_text"], operation["new_text"], regex=True)
+                df[column_name] = df[column_name].replace(
+                    operation["old_text"], operation["new_text"], regex=True
+                )
             elif action == "filter_out_keywords":
                 keywords = [keyword.lower() for keyword in operation["keywords"]]
                 columns = operation["columns"]
@@ -474,7 +491,9 @@ def manipulate_csv_data(file_path=None, output_filepath=None, operations=None, i
                 skip_columns = operation.get("skip_columns", [])
                 mask = []
                 for index, row in df.iterrows():
-                    row_text = " ".join(str(row[column]).lower() for column in columns if column not in skip_columns)
+                    row_text = " ".join(
+                        str(row[column]).lower() for column in columns if column not in skip_columns
+                    )
                     if any(keyword in row_text for keyword in keywords):
                         mask.append(True)
                     else:
@@ -684,7 +703,9 @@ def compress_image(source, output_dir=None, quality=80, unit="KB"):
 
         index = 0
         while True:
-            output_filename = f"{input_name}_comp-{quality}{f'_{index}' if index else ''}{input_ext}"
+            output_filename = (
+                f"{input_name}_comp-{quality}{f'_{index}' if index else ''}{input_ext}"
+            )
             output_path = os.path.join(output_dir, output_filename)
             if not os.path.exists(output_path):
                 break
