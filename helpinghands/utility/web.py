@@ -202,26 +202,6 @@ def setup_browser(config: WebConfig, with_proxy: bool = True) -> Tuple[Any, Any]
         return browser_object, wait_object
 
 
-# PROXY
-# firefox (deprecated)
-def setup_proxy_simple(host: str, username: str, password: str) -> Proxy:
-    if not all([host, username, password]):
-        raise ValueError("All BrightData proxy details must be provided.")
-
-    # Removing the "http://" scheme
-    proxy_url = host
-
-    proxy_config = {
-        "httpProxy": proxy_url,
-        "sslProxy": proxy_url,
-        "proxyType": ProxyType.MANUAL,
-    }
-
-    proxy = Proxy(proxy_config)
-
-    return proxy
-
-
 # chrome
 def setup_proxy_wire(
     proxy_config: dict = {"host": None, "username": None, "password": None},
@@ -241,6 +221,26 @@ def setup_proxy_wire(
 
     if for_selenium:
         return {"proxy": proxy}
+    return proxy
+
+
+# PROXY
+# firefox (deprecated)
+def setup_proxy_simple(host: str, username: str, password: str) -> Proxy:
+    if not all([host, username, password]):
+        raise ValueError("All BrightData proxy details must be provided.")
+
+    # Removing the "http://" scheme
+    proxy_url = host
+
+    proxy_config = {
+        "httpProxy": proxy_url,
+        "sslProxy": proxy_url,
+        "proxyType": ProxyType.MANUAL,
+    }
+
+    proxy = Proxy(proxy_config)
+
     return proxy
 
 
