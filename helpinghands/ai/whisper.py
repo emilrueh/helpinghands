@@ -30,7 +30,7 @@ def call_whisper(api_key, mp3_path, action="transcribe"):
                 with open(rf"{mp3_path}", "rb") as audio_file:
                     api_result = openai.Audio.transcribe("whisper-1", audio_file)["text"]
                 if api_result is not None:
-                    logger.info(f"Successfully called the whisper model to {action} from the OpenAI API.")
+                    logger.debug(f"Successfully called the whisper model to {action} from the OpenAI API.")
                     return api_result
                 else:
                     return "Something failed and the API result is None."

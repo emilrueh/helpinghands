@@ -1,7 +1,7 @@
 try:
     from .sounds import uhoh, criterr, warning, success
     from .converter import convert_audio, combine_audio_files
-    from .recorder import AudioRecorder, ContinuousRecorder
+    from .recorder import AudioRecorder  # , ContinuousRecorder
 except (ImportError, OSError) as e:
     import warnings
 

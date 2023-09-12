@@ -11,7 +11,7 @@ def load_settings(
     settings_file,
     secrets_keys_list=None,
     dotenv_path=None,
-    remote_env="DOCKER_ENV",
+    remote_env="REMOTE_ENV",
     default_settings_file="data/settings.json",
 ):
     logger = get_logger()
