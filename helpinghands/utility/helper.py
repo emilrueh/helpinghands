@@ -22,32 +22,28 @@ def log_exception(
     """
 
     # Get the file name and line number where the exception occurred
-    frame = inspect.currentframe()
-    file_name = inspect.getframeinfo(frame.f_back).filename
-    line_number = inspect.getframeinfo(frame.f_back).lineno
+    frames = inspect.trace()
+    outer_frame = frames[-1]
+    outer_file_name = outer_frame.filename
+    outer_line_number = outer_frame.lineno
 
-    message = (
-        f"{type(e).__name__} in {file_name}:{line_number}: {str(e).split('  ')[0]}"
-    )
+    message = f"{type(e).__name__} in {outer_file_name}:{outer_line_number}: {str(e).split('  ')[0]}"
 
     if verbose:
-        tb_str = traceback.format_exception(type(e), e, e.__traceback__, limit=tb_limit)
-        trace = "\n".join(tb_str)
-        traceback_message = f"\n\n--- Stack Trace ---\n{trace}\n--------------------\n"
-        message += traceback_message
+        all_frames = [(frame.filename, frame.lineno) for frame in frames]
+        trace = "\n".join([f"File: {file}, Line: {line}" for file, line in all_frames])
+        message += f"\n\n--- Stack Trace ---\n{trace}\n--------------------\n"
 
-    log_levels = {
+    log_function = {
         "debug": logger.debug,
         "info": logger.info,
         "warning": logger.warning,
         "error": logger.error,
         "exception": logger.exception,
         "critical": logger.critical,
-    }
+    }.get(log_level, logger.warning)
 
-    log_function = log_levels.get(log_level, logger.warning)
     log_function(message)
-
     return type(e).__name__
 
 
