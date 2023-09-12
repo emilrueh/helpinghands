@@ -177,7 +177,7 @@ def setup_browser(config: WebConfig, with_proxy: bool = True) -> Tuple[Any, Any]
             binary_location = r"C:\Program Files\Google\Chrome\Application\chrome.exe"
             service_log_path = None
 
-        print(seleniumwire_options)
+        logger.debug(f"seleniumwire_options = {seleniumwire_options}")
         browser_object = webdriver.Chrome(
             seleniumwire_options=seleniumwire_options,
             options=options,
