@@ -202,57 +202,6 @@ def setup_browser(config: WebConfig, with_proxy: bool = True) -> Tuple[Any, Any]
         return browser_object, wait_object
 
 
-@retry(
-    (
-        NoSuchWindowException,
-        InvalidSessionIdException,
-        ConnectionError,
-        WebDriverException,
-        TimeoutException,
-        ConnectionResetError,
-        ConnectionRefusedError,
-    ),
-    time_mode="advanced",
-)
-def get_website(
-    website,
-    selenium_browser=None,
-    selenium_wait=None,
-    config: WebConfig = WebConfig,
-):
-    logger = get_logger()
-
-    if not website:
-        raise ValueError("You need to specify a valid url.")
-
-    browser, wait = (
-        setup_browser(config)
-        if not selenium_browser
-        else (selenium_browser, selenium_wait)
-    )
-
-    try:
-        logger.info(f"Accessing url: {website}")
-        browser.get(website)  # OPEN WEBSITE
-    # except ConnectionResetError:
-    #     browser, wait = rotate_ip(browser, config)
-    #     try:
-    #         browser.get(website)  # RETRY
-    #     except Exception:
-    #         raise
-    except Exception as e:
-        log_exception(e)
-        if check_internet():
-            browser, wait = rotate_ip(browser, config)
-            try:
-                browser.get(website)  # RETRY
-            except Exception:
-                raise
-        else:
-            raise ConnectionError("No internet connection")
-    return browser, wait
-
-
 # PROXY
 # firefox (deprecated)
 def setup_proxy_simple(host: str, username: str, password: str) -> Proxy:
