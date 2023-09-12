@@ -75,7 +75,9 @@ def open_website(
     # BROWSER SETUP
     if not BROWSER:
         try:
-            logger.debug(f"Setting up browser {'with' if with_proxy else 'without'} Proxy...")
+            logger.debug(
+                f"Setting up browser {'with' if with_proxy else 'without'} Proxy..."
+            )
             BROWSER, WAIT = setup_browser(browser_config, with_proxy)
         except Exception as e:
             log_exception(e)
@@ -141,7 +143,9 @@ def setup_browser(config: WebConfig, with_proxy: bool = True) -> Tuple[Any, Any]
             options.add_argument("--disable-gpu")
             options.add_argument("--headless")
             options.add_argument("--no-sandbox")  # Bypass OS-level sandbox
-            options.add_argument("--disable-dev-shm-usage")  # Overcome limited resource issues in Docker
+            options.add_argument(
+                "--disable-dev-shm-usage"
+            )  # Overcome limited resource issues in Docker
             options.add_argument("--disable-blink-features=AutomationControlled")
             options.add_argument("--disable-software-rasterizer")
             options.add_argument("--disable-webgl")
@@ -173,7 +177,7 @@ def setup_browser(config: WebConfig, with_proxy: bool = True) -> Tuple[Any, Any]
             binary_location = r"C:\Program Files\Google\Chrome\Application\chrome.exe"
             service_log_path = None
 
-        print(seleniumwire_options)
+        logger.debug(f"seleniumwire_options = {seleniumwire_options}")
         browser_object = webdriver.Chrome(
             seleniumwire_options=seleniumwire_options,
             options=options,
@@ -186,7 +190,9 @@ def setup_browser(config: WebConfig, with_proxy: bool = True) -> Tuple[Any, Any]
         time.sleep(3)
         browser_object.set_page_load_timeout(60)  # SET PAGE LOAD LIMIT
     else:
-        raise ValueError(f"{browser} browser is not available. Please use Chrome (Firefox is deprecated).")
+        raise ValueError(
+            f"{browser} browser is not available. Please use Chrome (Firefox is deprecated)."
+        )
 
     if browser_object:
         wait_object = WebDriverWait(browser_object, explicit_wait_seconds)
@@ -194,229 +200,6 @@ def setup_browser(config: WebConfig, with_proxy: bool = True) -> Tuple[Any, Any]
         if with_proxy and show_ip:
             logger.info(f"Current IP: {get_current_ip(browser_object)}")
         return browser_object, wait_object
-
-
-# # ---> GEN3
-# @retry(
-#     (
-#         SessionNotCreatedException,
-#         ConnectionResetError,
-#         WebDriverException,
-#     ),
-#     time_mode="simple",
-# )
-# def setup_browser(config: WebConfig, with_proxy: bool = True) -> Tuple[Any, Any]:
-#     logger = get_logger()
-#     logger.debug(check_versions_and_paths())
-
-#     # loading config
-#     browser = config.browser
-#     explicit_wait_seconds = config.explicit_wait_seconds
-#     headless = config.headless
-#     proxy_config = config.proxy_config
-#     remote_env = config.remote_env
-#     autoplay_videos = config.autoplay_vids
-
-#     # Check for the Docker environment
-#     in_docker = os.getenv(remote_env) is not None
-#     # Setup for Firefox
-#     if browser == "firefox":
-#         logger.warning(
-#             f"Firefox is deprecated. Please use Chrome instead. Your script will now still attempt execution."
-#         )
-#         options = webdriver.FirefoxOptions()
-
-#         # If running in headless mode
-#         if headless:
-#             options.add_argument("--headless")
-
-#         # start with or without a previously configured proxy
-#         if proxy_config:
-#             options.proxy = proxy_config
-#         # Path to Firefox binary in docker
-#         if in_docker:
-#             options.binary_location = "/usr/bin/firefox"
-#             service_log_path = "/app/data/geckodriver.log"
-#         else:
-#             options.binary_location = r"C:\Program Files\Mozilla Firefox\firefox.exe"
-#             service_log_path = None
-
-#         browser_object = webdriver.Firefox(options=options, service=FirefoxService(log_path=service_log_path))
-#     # Setup for Chrome
-#     elif browser == "chrome":
-#         options = ChromeOptions()
-#         seleniumwire_options = None
-
-#         if not autoplay_videos:
-#             options.add_argument("--autoplay-policy=document-user-activation-required")
-
-#         if headless or in_docker:
-#             logger.debug("Settings headless mode...")
-#             options.add_argument("--disable-gpu")
-#             options.add_argument("--headless")
-#             options.add_argument("--no-sandbox")  # Bypass OS-level sandbox
-#             options.add_argument("--disable-dev-shm-usage")  # Overcome limited resource issues in Docker
-#             options.add_argument("--disable-blink-features=AutomationControlled")
-#             options.add_argument("--disable-software-rasterizer")
-#             options.add_argument("--disable-webgl")
-#             options.add_argument("--window-size=1920,1080")
-#             options.add_argument("--log-level=3")  # Only show fatal errors
-#             options.add_experimental_option(
-#                 "prefs",
-#                 {
-#                     "profile.default_content_setting_values.notifications": 2,
-#                     "profile.managed_default_content_settings.images": 2,
-#                     "profile.managed_default_content_settings.javascript": 1,
-#                     "profile.managed_default_content_settings.plugins": 1,
-#                     "profile.managed_default_content_settings.popups": 2,
-#                     "profile.managed_default_content_settings.geolocation": 2,
-#                     "profile.managed_default_content_settings.media_stream": 2,
-#                     "profile.default_content_settings.cookies": 2,
-#                     "profile.block_third_party_cookies": True,
-#                 },
-#             )
-#         if with_proxy and proxy_config:
-#             logger.debug(f"Setting proxy options: {proxy_config}")
-#             seleniumwire_options = setup_proxy_wire(proxy_config=proxy_config)
-#         # Path to Chrome binary in docker (this is only an example, adjust based on your docker setup)
-#         if in_docker:
-#             binary_location = "/usr/bin/chromedriver"
-#             service_log_path = "/app/data/chromedriver.log"
-#         else:
-#             # Default path to Chrome binary on most systems; adjust if yours is different
-#             binary_location = r"C:\Program Files\Google\Chrome\Application\chrome.exe"
-#             service_log_path = None
-
-#         print(seleniumwire_options)
-#         browser_object = webdriver.Chrome(
-#             seleniumwire_options=seleniumwire_options,
-#             options=options,
-#             service=ChromeService(
-#                 log_path=service_log_path,
-#                 service_args=["--verbose"],
-#                 # executable_path=binary_location,
-#             ),
-#         )
-#         browser_object.set_page_load_timeout(60)  # SET PAGE LOAD LIMIT
-#         time.sleep(3)
-#     else:
-#         raise ValueError(f"{browser} browser is not available. Please use Chrome (Firefox is deprecated).")
-
-#     if browser_object:
-#         wait_object = WebDriverWait(browser_object, explicit_wait_seconds)
-#         show_ip = False  # needs to be part of config
-#         if with_proxy and show_ip:
-#             logger.info(f"Current IP: {get_current_ip(browser_object)}")
-#         return browser_object, wait_object
-
-
-# @retry(
-#     (
-#         NoSuchWindowException,
-#         InvalidSessionIdException,
-#         ConnectionError,
-#         WebDriverException,
-#         TimeoutException,
-#     ),
-#     time_mode="advanced",
-# )
-# def get_website(
-#     website,
-#     selenium_browser=None,
-#     selenium_wait=None,
-#     config: WebConfig = WebConfig,
-# ):
-#     if not website:
-#         raise ValueError("You need to specify a valid url.")
-#     if not selenium_browser:
-#         browser, wait = setup_browser(config)
-#     else:
-#         browser = selenium_browser
-#         wait = selenium_wait
-
-#     try:
-#         logger.info(f"Accessing url: {website}")
-#         browser.get(website)  # OPEN WEBSITE
-#     except (NoSuchWindowException, InvalidSessionIdException, WebDriverException, TimeoutException) as e:
-#         log_exception(e)
-
-#         has_internet = check_internet()
-#         if has_internet:
-#             browser, wait = rotate_ip(browser_object=browser, config=config)
-#             try:
-#                 browser.get(website)  # RETRYING OPEN WEBSITE
-#             except Exception as e:
-#                 raise  # RETRY
-#         else:
-#             raise ConnectionError(f"No internet connection")
-#     return browser, wait
-
-
-@retry(
-    (
-        NoSuchWindowException,
-        InvalidSessionIdException,
-        ConnectionError,
-        WebDriverException,
-        TimeoutException,
-        ConnectionResetError,
-        ConnectionRefusedError,
-    ),
-    time_mode="advanced",
-)
-def get_website(
-    website,
-    selenium_browser=None,
-    selenium_wait=None,
-    config: WebConfig = WebConfig,
-):
-    logger = get_logger()
-
-    if not website:
-        raise ValueError("You need to specify a valid url.")
-
-    browser, wait = setup_browser(config) if not selenium_browser else (selenium_browser, selenium_wait)
-
-    try:
-        logger.info(f"Accessing url: {website}")
-        browser.get(website)  # OPEN WEBSITE
-    # except ConnectionResetError:
-    #     browser, wait = rotate_ip(browser, config)
-    #     try:
-    #         browser.get(website)  # RETRY
-    #     except Exception:
-    #         raise
-    except Exception as e:
-        log_exception(e)
-        if check_internet():
-            browser, wait = rotate_ip(browser, config)
-            try:
-                browser.get(website)  # RETRY
-            except Exception:
-                raise
-        else:
-            raise ConnectionError("No internet connection")
-    return browser, wait
-
-
-# PROXY
-# firefox (deprecated)
-def setup_proxy_simple(host: str, username: str, password: str) -> Proxy:
-    if not all([host, username, password]):
-        raise ValueError("All BrightData proxy details must be provided.")
-
-    # Removing the "http://" scheme
-    proxy_url = host
-
-    proxy_config = {
-        "httpProxy": proxy_url,
-        "sslProxy": proxy_url,
-        "proxyType": ProxyType.MANUAL,
-    }
-
-    proxy = Proxy(proxy_config)
-
-    return proxy
 
 
 # chrome
@@ -438,6 +221,26 @@ def setup_proxy_wire(
 
     if for_selenium:
         return {"proxy": proxy}
+    return proxy
+
+
+# PROXY
+# firefox (deprecated)
+def setup_proxy_simple(host: str, username: str, password: str) -> Proxy:
+    if not all([host, username, password]):
+        raise ValueError("All BrightData proxy details must be provided.")
+
+    # Removing the "http://" scheme
+    proxy_url = host
+
+    proxy_config = {
+        "httpProxy": proxy_url,
+        "sslProxy": proxy_url,
+        "proxyType": ProxyType.MANUAL,
+    }
+
+    proxy = Proxy(proxy_config)
+
     return proxy
 
 
@@ -606,7 +409,9 @@ def connect_to_vpn(country_list, use_env_credentials=False):
 
         use_settings_file = 1
 
-    vpn_settings = initialize_VPN(stored_settings=use_settings_file, area_input=country_list)
+    vpn_settings = initialize_VPN(
+        stored_settings=use_settings_file, area_input=country_list
+    )
     logger.info(f"Connecting to NordVPN with settings {vpn_settings}...")
     rotate_VPN(vpn_settings)
     return vpn_settings
