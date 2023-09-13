@@ -83,7 +83,7 @@ def open_website(
             BROWSER, WAIT = setup_browser(browser_config, with_proxy)
         except OptionsError as e:
             log_exception(e, log_level="Exception", verbose=True)
-            raise  # NO RETRY
+            return  # NO RETRY
         except Exception as e:
             log_exception(e)
             raise  # RETRY
