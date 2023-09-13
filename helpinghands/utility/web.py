@@ -4,6 +4,8 @@ from ..utility.helper import log_exception
 
 # from selenium import webdriver
 from seleniumwire import webdriver
+from seleniumwire.thirdparty.mitmproxy.exceptions import OptionsError
+
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.firefox.options import Options as FirefoxOptions
 from selenium.webdriver.firefox.service import Service as FirefoxService
@@ -79,6 +81,9 @@ def open_website(
                 f"Setting up browser {'with' if with_proxy else 'without'} Proxy..."
             )
             BROWSER, WAIT = setup_browser(browser_config, with_proxy)
+        except OptionsError as e:
+            log_exception(e, log_level="Exception", verbose=True)
+            raise  # NO RETRY
         except Exception as e:
             log_exception(e)
             raise  # RETRY
