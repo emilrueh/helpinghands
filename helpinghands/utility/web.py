@@ -267,6 +267,13 @@ def test_proxy(proxy_host, proxy_user, proxy_pass):
 
 
 # IPs
+def listen_on_port(address="0.0.0.0", port=8080):
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.bind((address, port))
+    s.listen(1)
+    conn, addr = s.accept()
+
+
 def get_original_ip():
     logger = get_logger()
     try:
