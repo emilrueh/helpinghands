@@ -272,6 +272,7 @@ def listen_on_port(address="0.0.0.0", port=8080):
     s.bind((address, port))
     s.listen(1)
     conn, addr = s.accept()
+    return s
 
 
 def get_original_ip():
