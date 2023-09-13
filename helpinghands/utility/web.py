@@ -77,9 +77,7 @@ def open_website(
     # BROWSER SETUP
     if not BROWSER:
         try:
-            logger.debug(
-                f"Setting up browser {'with' if with_proxy else 'without'} Proxy..."
-            )
+            logger.debug(f"Setting up browser {'with' if with_proxy else 'without'} Proxy...")
             BROWSER, WAIT = setup_browser(browser_config, with_proxy)
         except OptionsError as e:
             log_exception(e, log_level="Exception", verbose=True)
@@ -96,8 +94,6 @@ def open_website(
         except KeyboardInterrupt:
             quit()
         except Exception as e:
-            log_exception(e)
-
             # CHECKING FOR CONNECTION
             if check_internet():
                 has_internet = True
@@ -110,7 +106,9 @@ def open_website(
                 BROWSER.quit()
                 BROWSER = None
                 WAIT = None
-                raise
+                raise  # RETRY
+            # logging exception as true error
+            log_exception(e, log_level="Exception", verbose=True)
 
     return BROWSER, WAIT
 
@@ -414,9 +412,7 @@ def connect_to_vpn(country_list, use_env_credentials=False):
 
         use_settings_file = 1
 
-    vpn_settings = initialize_VPN(
-        stored_settings=use_settings_file, area_input=country_list
-    )
+    vpn_settings = initialize_VPN(stored_settings=use_settings_file, area_input=country_list)
     logger.info(f"Connecting to NordVPN with settings {vpn_settings}...")
     rotate_VPN(vpn_settings)
     return vpn_settings
