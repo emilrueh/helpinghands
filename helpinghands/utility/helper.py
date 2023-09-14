@@ -1,14 +1,12 @@
 from ..utility.logger import get_logger
 
-import sys, subprocess, platform, traceback, inspect
+import sys, time, subprocess, platform, traceback, inspect, psutil
 from termcolor import colored
 from typing import Type
 
 
 # EXCEPTIONS
-def log_exception(
-    e: BaseException, log_level: str = "warning", verbose=False, tb_limit=4
-) -> str:
+def log_exception(e: BaseException, log_level: str = "warning", verbose=False, tb_limit=4) -> str:
     logger = get_logger()
     """
     Logs an exception with a specified log level.
@@ -22,32 +20,30 @@ def log_exception(
     """
 
     # Get the file name and line number where the exception occurred
-    frame = inspect.currentframe()
-    file_name = inspect.getframeinfo(frame.f_back).filename
-    line_number = inspect.getframeinfo(frame.f_back).lineno
+    frames = inspect.trace()
+    outer_frame = frames[-1]
+    outer_file_name = outer_frame.filename
+    outer_line_number = outer_frame.lineno
 
     message = (
-        f"{type(e).__name__} in {file_name}:{line_number}: {str(e).split('  ')[0]}"
+        f"{type(e).__name__} in {outer_file_name}:{outer_line_number}: {str(e).split('  ')[0]}"
     )
 
     if verbose:
-        tb_str = traceback.format_exception(type(e), e, e.__traceback__, limit=tb_limit)
-        trace = "\n".join(tb_str)
-        traceback_message = f"\n\n--- Stack Trace ---\n{trace}\n--------------------\n"
-        message += traceback_message
+        all_frames = [(frame.filename, frame.lineno) for frame in frames]
+        trace = "\n".join([f"File: {file}, Line: {line}" for file, line in all_frames])
+        message += f"\n\n--- Stack Trace ---\n{trace}\n--------------------\n"
 
-    log_levels = {
+    log_function = {
         "debug": logger.debug,
         "info": logger.info,
         "warning": logger.warning,
         "error": logger.error,
         "exception": logger.exception,
         "critical": logger.critical,
-    }
+    }.get(log_level, logger.warning)
 
-    log_function = log_levels.get(log_level, logger.warning)
     log_function(message)
-
     return type(e).__name__
 
 
@@ -62,9 +58,7 @@ def get_git_tree(repo_path="."):
         return tree_string
 
     # Get list of files in repository
-    result = subprocess.run(
-        ["git", "ls-files"], capture_output=True, cwd=repo_path, text=True
-    )
+    result = subprocess.run(["git", "ls-files"], capture_output=True, cwd=repo_path, text=True)
     files = result.stdout.split("\n")
 
     # Build and print directory tree
@@ -79,9 +73,7 @@ def get_git_tree(repo_path="."):
 
 # OTHER
 def colorize(text, color="yellow", background=None, style=None):
-    if (
-        sys.stdout.isatty()
-    ):  # Only colorize if output is going to a terminal (excluding jupyter nb)
+    if sys.stdout.isatty():  # Only colorize if output is going to a terminal (excluding jupyter nb)
         return colored(text, color, background, style)
     else:
         return text
@@ -95,3 +87,18 @@ def ensure_windows_os():
     """Ensures that the current OS is Windows. Raises an error otherwise."""
     if platform.system() != "Windows":
         raise NotImplementedError("This function is only available on Windows!")
+
+
+def log_memory_usage(interval=10, stop_event=None):
+    logger = get_logger()
+
+    current_process = psutil.Process()
+
+    if not stop_event:
+        raise ValueError("Need stop_event from threading to exit gracefully.")
+
+    while not stop_event.is_set():
+        mem_info = psutil.virtual_memory()
+        process_mem_info = current_process.memory_info().rss / (1024**2)  # MB
+        logger.debug(f"Memory Usage: {mem_info.percent}%, Process Memory: {process_mem_info} MB")
+        time.sleep(interval)

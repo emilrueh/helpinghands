@@ -43,6 +43,7 @@ from .helper import (
     colorize,
     get_variable_name,
     ensure_windows_os,
+    log_memory_usage,
 )
 
 try:
@@ -50,10 +51,10 @@ try:
         WebConfig,
         open_website,
         setup_browser,
-        get_website,
-        setup_proxy_simple,
         setup_proxy_wire,
+        setup_proxy_simple,
         test_proxy,
+        listen_on_port,
         get_original_ip,
         get_current_ip,
         rotate_ip,

@@ -4,6 +4,8 @@ from ..utility.helper import log_exception
 
 # from selenium import webdriver
 from seleniumwire import webdriver
+from seleniumwire.thirdparty.mitmproxy.exceptions import OptionsError
+
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.firefox.options import Options as FirefoxOptions
 from selenium.webdriver.firefox.service import Service as FirefoxService
@@ -75,10 +77,11 @@ def open_website(
     # BROWSER SETUP
     if not BROWSER:
         try:
-            logger.debug(
-                f"Setting up browser {'with' if with_proxy else 'without'} Proxy..."
-            )
+            logger.debug(f"Setting up browser {'with' if with_proxy else 'without'} Proxy...")
             BROWSER, WAIT = setup_browser(browser_config, with_proxy)
+        except OptionsError as e:
+            log_exception(e, log_level="Exception", verbose=True)
+            return  # NO RETRY
         except Exception as e:
             log_exception(e)
             raise  # RETRY
@@ -91,8 +94,6 @@ def open_website(
         except KeyboardInterrupt:
             quit()
         except Exception as e:
-            log_exception(e)
-
             # CHECKING FOR CONNECTION
             if check_internet():
                 has_internet = True
@@ -105,7 +106,10 @@ def open_website(
                 BROWSER.quit()
                 BROWSER = None
                 WAIT = None
-                raise
+                raise  # RETRY
+
+            # else logging exception as true error
+            log_exception(e, log_level="Exception", verbose=True)
 
     return BROWSER, WAIT
 
@@ -264,6 +268,14 @@ def test_proxy(proxy_host, proxy_user, proxy_pass):
 
 
 # IPs
+def listen_on_port(address="0.0.0.0", port=8080):
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.bind((address, port))
+    s.listen(1)
+    conn, addr = s.accept()
+    return s
+
+
 def get_original_ip():
     logger = get_logger()
     try:
@@ -409,9 +421,7 @@ def connect_to_vpn(country_list, use_env_credentials=False):
 
         use_settings_file = 1
 
-    vpn_settings = initialize_VPN(
-        stored_settings=use_settings_file, area_input=country_list
-    )
+    vpn_settings = initialize_VPN(stored_settings=use_settings_file, area_input=country_list)
     logger.info(f"Connecting to NordVPN with settings {vpn_settings}...")
     rotate_VPN(vpn_settings)
     return vpn_settings
