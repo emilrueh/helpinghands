@@ -107,7 +107,8 @@ def open_website(
                 BROWSER = None
                 WAIT = None
                 raise  # RETRY
-            # logging exception as true error
+
+            # else logging exception as true error
             log_exception(e, log_level="Exception", verbose=True)
 
     return BROWSER, WAIT
