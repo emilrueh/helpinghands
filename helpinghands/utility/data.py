@@ -5,7 +5,7 @@ from ..utility.decorator import retry
 import pandas as pd
 import numpy as np
 
-import json, re, os, subprocess, requests, time, random
+import json, re, os, subprocess, requests, random
 import tempfile, shutil, textwrap, platform, uuid, glob
 
 from pathlib import Path

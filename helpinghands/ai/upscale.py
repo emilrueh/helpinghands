@@ -9,7 +9,6 @@ from PIL import Image
 import requests
 import gc
 
-import pandas as pd
 import time
 
 import os
@@ -79,7 +78,9 @@ def super_image(
         inputs = ImageLoader.load_image(image)
         preds = model(inputs)
 
-        full_file_path = os.path.join(output_file_dir, f"{output_file_name}{scale}x.{output_file_format}")
+        full_file_path = os.path.join(
+            output_file_dir, f"{output_file_name}{scale}x.{output_file_format}"
+        )
         ImageLoader.save_image(preds, full_file_path)
         if save_comparison:
             ImageLoader.save_compare(inputs, preds, full_file_path.replace("x", "x_compare"))
@@ -138,7 +139,9 @@ def super_image_loop(
 
         data.at[i, input_column] = upscaled_file if upscaled_file else input_file
 
-        logger.info(f"Row:{i} - {'Upscaled' if upscaled_file else 'Did not upscale'} image:\n{input_file}")
+        logger.info(
+            f"Row:{i} - {'Upscaled' if upscaled_file else 'Did not upscale'} image:\n{input_file}"
+        )
         if sleep:
             time.sleep(sleep)
         # Save DataFrame every 100 rows
@@ -153,7 +156,9 @@ def super_image_loop(
 
     # Save the last batch
     if backup_file and output_files_dir is not None:
-        backup_file_final = backup_file.rsplit(".", 1)[0] + "_Final." + backup_file.rsplit(".", 1)[1]
+        backup_file_final = (
+            backup_file.rsplit(".", 1)[0] + "_Final." + backup_file.rsplit(".", 1)[1]
+        )
         data.to_csv(backup_file_final, index=False)
         logger.info(f"Final CSV saved at: {backup_file_final}")
 

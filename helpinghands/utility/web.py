@@ -7,8 +7,6 @@ from seleniumwire import webdriver
 from seleniumwire.thirdparty.mitmproxy.exceptions import OptionsError
 
 from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.firefox.options import Options as FirefoxOptions
-from selenium.webdriver.firefox.service import Service as FirefoxService
 from selenium.webdriver.chrome.options import Options as ChromeOptions
 from selenium.webdriver.chrome.service import Service as ChromeService
 from selenium.webdriver.common.proxy import Proxy, ProxyType

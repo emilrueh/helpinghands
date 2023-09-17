@@ -4,13 +4,6 @@ import requests, time
 
 import openai
 
-from io import BytesIO
-import numpy as np
-import soundfile as sf
-
-import tempfile
-import os
-
 
 def call_whisper(api_key, mp3_path, action="transcribe"):
     """
@@ -30,12 +23,16 @@ def call_whisper(api_key, mp3_path, action="transcribe"):
                 with open(rf"{mp3_path}", "rb") as audio_file:
                     api_result = openai.Audio.transcribe("whisper-1", audio_file)["text"]
                 if api_result is not None:
-                    logger.debug(f"Successfully called the whisper model to {action} from the OpenAI API.")
+                    logger.debug(
+                        f"Successfully called the whisper model to {action} from the OpenAI API."
+                    )
                     return api_result
                 else:
                     return "Something failed and the API result is None."
             except (openai.error.RateLimitError, requests.exceptions.ConnectionError):
-                logger.error(f"ERROR encountered. New API call attempt in {(2**attempts)} seconds...\n")
+                logger.error(
+                    f"ERROR encountered. New API call attempt in {(2**attempts)} seconds...\n"
+                )
                 time.sleep((2**attempts))
                 attempts += 1
     else:
