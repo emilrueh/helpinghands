@@ -2,7 +2,7 @@ from time import sleep
 
 
 # setup
-def initiate_openai(key_in_dotenv="OPENAI_API_KEY", raw_key=None):
+def init_openai(key_in_dotenv="OPENAI_API_KEY", raw_key=None):
     # imports
     import openai
     from dotenv import load_dotenv
@@ -25,12 +25,10 @@ def create_assistant(
     """
     Pass the API Key via the .env file key defined in 'dotenv_openai_api_key' or directly via 'raw_openai_api_key'.
     """
-    openai_object = initiate_openai(dotenv_openai_api_key, raw_key=raw_openai_api_key)
+    openai_object = init_openai(dotenv_openai_api_key, raw_key=raw_openai_api_key)
     if openai_object.api_key is None:
         print("No 'OpenAI API Key' provided. Exiting...")
         return
-
-    print(instructions_prompt, role_or_name)
 
     assistant_object = openai_object.beta.assistants.create(
         instructions=instructions_prompt, model=model, tools=tools, name=role_or_name
@@ -139,7 +137,7 @@ def init_conversation(
     current_user_name=None,
 ):
     # settings
-    greeting = "Greet the user kindly with an extremely short message."
+    greeting = "Greet the user kindly with a very short message."
     goodbye = "Bye, bye."
     if current_user_name:
         greeting += f"The user's name is {current_user_name}."
@@ -153,8 +151,6 @@ def init_conversation(
     # fmt: off
     # talk to the assistant in the current thread
     while user_prompt not in ["break", "stop", "quit", "exit", "q"]:
-        # print(f"{conversation_iteration}")
-
         # process user_prompt:
         assistant_response = talk_to_assistant(
             openai_object,
@@ -165,9 +161,9 @@ def init_conversation(
         )
 
         # process assistant_response:
-        print("\n", assistant_response)
+        print(f"\n{assistant_response}")
 
         user_prompt = input("\n> ")
     # fmt: on
 
-    print("\n", goodbye, "\n")
+    print(f"\n{goodbye}\n")
