@@ -8,7 +8,7 @@ from assistant import (
 
 
 def activate_chatbot(
-    chatbot_role="You are a high-quality virtual assistent.",
+    chatbot_role="You are a high-quality virtual assistent named Timmy.",
     chatbot_task="Fulfill any wish asked from you to the best of your abilities.",
     current_user_name=None,
     gpt_model="gpt-3.5-turbo",
@@ -22,15 +22,20 @@ def activate_chatbot(
 
     # initiate library with api key
     openai = initiate_openai(dotenv_openai_api_key, raw_key=raw_openai_api_key)
+    if openai.api_key is None:
+        print("No 'OpenAI API Key' provided. Exiting...")
+        return
 
     # settings
     assistant_instructions = f"You are: {chatbot_role}. Your task is: {chatbot_task}"
+    greeting = "Greet the user kindly with an extremely short message."
+    goodbye = "Bye, bye."
+    if current_user_name:
+        greeting += f"The user's name is {current_user_name}."
 
     # run user and config prompts
     user_prompt = None
-    run_instructions = (
-        f"The user's name is {current_user_name}. She is a premium member."
-    )
+    run_instructions = f"Be kind but concise."  # ???
 
     # create chatbot
     assistant = create_assistant(
@@ -55,11 +60,19 @@ def activate_chatbot(
             assistant,
             thread,
             user_prompt=user_prompt if user_prompt else "Only listen to your instructions.",
-            run_instructions=run_instructions if user_prompt else "Greet the user kindly with an extremely short message.",
+            run_instructions=run_instructions if user_prompt else greeting,
         )
 
         # process assistant_response:
-        print(assistant_response)
+        print("\n", assistant_response)
 
         user_prompt = input("\n> ")
     # fmt: on
+
+    print("\n", goodbye)
+
+
+# test execution
+activate_chatbot(
+    raw_openai_api_key="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"
+)
