@@ -109,6 +109,8 @@ def talk_to_assistant(
     for message in reversed(messages.data):
         if message.role == "assistant":
             reply = message.content[0].text.value
+        elif message.role != "user":
+            reply = f"Unexpected message.role: {message.role}"
 
     # return message content
     return reply
