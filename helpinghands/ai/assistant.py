@@ -1,8 +1,9 @@
 from time import sleep
 
 
+# setup
 def initiate_openai(key_in_dotenv="OPENAI_API_KEY", raw_key=None):
-    # setup
+    # imports
     import openai
     from dotenv import load_dotenv
     import os
@@ -13,8 +14,23 @@ def initiate_openai(key_in_dotenv="OPENAI_API_KEY", raw_key=None):
     return openai
 
 
-def create_assistant(openai_object, prompt, model, tools=None, name=None):
-    return openai_object.beta.assistants.create(
+def create_assistant(
+    prompt=None,
+    model="gpt-3.5-turbo",
+    tools=[],
+    name=None,
+    dotenv_openai_api_key="OPENAI_API_KEY",
+    raw_openai_api_key=None,
+):
+    """
+    Pass the API Key via the .env file key defined in 'dotenv_openai_api_key' or directly via 'raw_openai_api_key'.
+    """
+    openai_object = initiate_openai(dotenv_openai_api_key, raw_key=raw_openai_api_key)
+    if openai_object.api_key is None:
+        print("No 'OpenAI API Key' provided. Exiting...")
+        return
+
+    return openai_object, openai_object.beta.assistants.create(
         instructions=prompt, model=model, tools=tools, name=name
     )
 
@@ -102,8 +118,6 @@ def talk_to_assistant(
     # retrieve run object
     run_id = check_on_run(openai_object, thread_object, run_object)
 
-    print("run_id:\n", run_id, "\n")
-
     # list messages of a thread
     messages = list_messages(openai_object, thread_object)
 
@@ -114,3 +128,43 @@ def talk_to_assistant(
 
     # return message content
     return reply
+
+
+def init_conversation(
+    openai_object,
+    assistant_object,
+    current_user_name=None,
+):
+    # settings
+    greeting = "Greet the user kindly with an extremely short message."
+    goodbye = "Bye, bye."
+    if current_user_name:
+        greeting += f"The user's name is {current_user_name}."
+
+    user_prompt = None
+    run_instructions = None
+
+    # create thread
+    thread_object = create_thread(openai_object)
+
+    # fmt: off
+    # talk to the assistant in the current thread
+    while user_prompt not in ["break", "stop", "quit", "exit", "q"]:
+        # print(f"{conversation_iteration}")
+
+        # process user_prompt:
+        assistant_response = talk_to_assistant(
+            openai_object,
+            assistant_object,
+            thread_object,
+            user_prompt=user_prompt if user_prompt else "Only listen to your instructions.",
+            run_instructions=run_instructions if user_prompt else greeting,
+        )
+
+        # process assistant_response:
+        print("\n", assistant_response)
+
+        user_prompt = input("\n> ")
+    # fmt: on
+
+    print("\n", goodbye, "\n")
