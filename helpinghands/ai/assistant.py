@@ -30,9 +30,12 @@ def create_assistant(
         print("No 'OpenAI API Key' provided. Exiting...")
         return
 
-    return openai_object, openai_object.beta.assistants.create(
+    print(instructions_prompt, role_or_name)
+
+    assistant_object = openai_object.beta.assistants.create(
         instructions=instructions_prompt, model=model, tools=tools, name=role_or_name
     )
+    return openai_object, assistant_object
 
 
 # initiate new conversation
