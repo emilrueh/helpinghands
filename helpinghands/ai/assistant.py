@@ -1,14 +1,14 @@
 from time import sleep
 
 
-def initiate_openai(key_in_dotenv="OPENAI_API_KEY"):
+def initiate_openai(key_in_dotenv="OPENAI_API_KEY", raw_key=None):
     # setup
     import openai
     from dotenv import load_dotenv
     import os
 
     load_dotenv()
-    openai_api_key = os.getenv(key_in_dotenv)
+    openai_api_key = os.getenv(key_in_dotenv) or raw_key
     openai.api_key = openai_api_key
     return openai
 
@@ -79,10 +79,12 @@ def talk_to_assistant(
         # status check
         if status == "completed":
             break
-        elif status == "qeued" and iteration < 1:
-            print("The run is qeued...")
-        elif status == "in_progress" and iteration < 1:
-            print("The run is in progress...")
+        elif status == "queued":
+            if iteration < 1:
+                print("The run is queued...")
+        elif status == "in_progress":
+            if iteration < 1:
+                print("The run is in progress...")
         elif status == "requires_action":
             print("The run requires action...")
         elif status == "failed":
