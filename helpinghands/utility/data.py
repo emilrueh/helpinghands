@@ -748,3 +748,28 @@ def clean_directory(dir_path, file_extensions=["*.csv", "*.json", "*.jpg", "*.jp
                 logger.warning(f"Permission denied: Couldn't delete {file}")
 
     logger.info(f"Deleted {counts} files in {os.path.basename(dir_path)}")
+
+
+# def plot_correlation_matrix(df, cols, title=None, pos_threshold=0.7, neg_threshold=None):
+#     corr = df[cols].corr()
+#     plt.figure(figsize=(10, 10))
+
+#     cax = plt.matshow(
+#         corr,
+#         cmap="coolwarm",
+#         vmin=-neg_threshold if neg_threshold else pos_threshold,
+#         vmax=pos_threshold,
+#     )
+#     plt.colorbar(cax)
+
+#     plt.xticks(np.arange(len(cols)), cols, rotation=90)
+#     plt.yticks(np.arange(len(cols)), cols)
+
+#     for i in range(len(corr)):
+#         for j in range(len(corr)):
+#             plt.text(j, i, f"{corr.iloc[i, j]:.2f}", ha="center", va="center")
+
+#     if title:
+#         plt.title(title, pad=20)
+
+#     plt.show()
