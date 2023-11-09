@@ -60,7 +60,8 @@ def check_run_status(openai_object, thread_object, run_object):
             break
         elif status in ["queued", "in_progress"]:
             if iteration < 1:
-                print(f"The run is {status}...")
+                # print(f"The run is {status}...")
+                pass
         elif status == "requires_action":
             print("The run requires action...")
         elif status == "failed":
@@ -104,66 +105,10 @@ def talk_to_assistant(
     # list messages of a thread
     messages = list_messages(openai_object, thread_object)
 
-    # access message content
-    for message in messages:
+    # access content of last message
+    for message in reversed(messages.data):
         if message.role == "assistant":
-            for content in message.content:
-                response_message = content.text.value
-                print(response_message)
-        elif message.role == "user":
-            pass
-        else:
-            response_message = f"No response available for message role: {message.role}"
+            reply = message.content[0].text.value
 
     # return message content
-    return response_message
-
-
-# example usage:
-"""
-from assistant_funcs import (
-    initiate_openai,
-    create_assistant,
-    create_thread,
-    talk_to_assistant,
-)
-
-# initiate library with api key
-openai = initiate_openai("OPENAI_API_KEY")
-
-
-# prompts
-assistant_name = "German Tutor"
-assistant_instructions = "You are a personal German Tutor. Hold a conversation and write lessons and exercises to files for mistakes your student makes in the conversation as well as correcting the homework of your student."
-
-user_prompt = "Hello, I have issues with the passive voice in German. Also, ich fahre ist aktiv. Aber es wird fahren ist Zukunft. Also wo ist der Passiv?"
-run_instructions = "The user's name is Juli. She has a friendly attitude."
-
-model = "gpt-4"
-assistant_tools = [{"type": "code_interpreter"}]
-
-
-# create assistant
-assistant = create_assistant(
-    openai,
-    prompt=assistant_instructions,
-    model=model,
-    tools=assistant_tools,
-    name=assistant_name,
-)
-
-# create thread
-thread = create_thread(openai)
-
-# talk to the assistant in the current thread
-assistant_response = talk_to_assistant(
-    openai,
-    assistant,
-    thread,
-    user_prompt=user_prompt,
-    run_instructions=run_instructions,
-)
-
-print(assistant_response)
-
-"""
+    return reply
