@@ -75,7 +75,7 @@ def check_on_run(openai_object, thread_object, run_object):
 
         iteration += 1
         sleep(3)
-    return status
+    return run_object.id
 
 
 # display all message in the conversation
@@ -100,17 +100,17 @@ def talk_to_assistant(
     )
 
     # retrieve run object
-    run_status = check_on_run(openai_object, thread_object, run_object)
+    run_id = check_on_run(openai_object, thread_object, run_object)
+
+    print("run_id:\n", run_id, "\n")
 
     # list messages of a thread
     messages = list_messages(openai_object, thread_object)
 
     # access content of last message
-    for message in reversed(messages.data):
-        if message.role == "assistant":
+    for message in messages.data:
+        if message.run_id == run_id:
             reply = message.content[0].text.value
-        elif message.role != "user":
-            reply = f"Unexpected message.role: {message.role}"
 
     # return message content
     return reply
