@@ -49,28 +49,7 @@ def retrieve_run(openai_object, thread_object, run_object):
     )
 
 
-# display all message in the conversation
-def list_messages(openai_object, thread_object):
-    return openai_object.beta.threads.messages.list(thread_id=thread_object.id)
-
-
-# re-usable implementation
-def talk_to_assistant(
-    openai_object,
-    assistant_object,
-    thread_object,
-    user_prompt: str,
-    run_instructions: str = None,
-):
-    # create message - for thread
-    message = create_message(openai_object, thread_object, prompt=user_prompt)
-
-    # create run - for messages in thread
-    run_object = create_run(
-        openai_object, assistant_object, thread_object, prompt=run_instructions
-    )
-
-    # retrieve run - get response
+def check_run_status(openai_object, thread_object, run_object):
     iteration = 0
     while True:
         run_response = retrieve_run(openai_object, thread_object, run_object)
@@ -79,12 +58,9 @@ def talk_to_assistant(
         # status check
         if status == "completed":
             break
-        elif status == "queued":
+        elif status in ["queued", "in_progress"]:
             if iteration < 1:
-                print("The run is queued...")
-        elif status == "in_progress":
-            if iteration < 1:
-                print("The run is in progress...")
+                print(f"The run is {status}...")
         elif status == "requires_action":
             print("The run requires action...")
         elif status == "failed":
@@ -98,10 +74,37 @@ def talk_to_assistant(
 
         iteration += 1
         sleep(3)
+    return status
 
-    # list messages - of a thread
+
+# display all message in the conversation
+def list_messages(openai_object, thread_object):
+    return openai_object.beta.threads.messages.list(thread_id=thread_object.id)
+
+
+# re-usable implementation
+def talk_to_assistant(
+    openai_object,
+    assistant_object,
+    thread_object,
+    user_prompt: str,
+    run_instructions: str = None,
+):
+    # create message and add to thread
+    message = create_message(openai_object, thread_object, prompt=user_prompt)
+
+    # create run for messages in thread
+    run_object = create_run(
+        openai_object, assistant_object, thread_object, prompt=run_instructions
+    )
+
+    # retrieve run object
+    run_status = check_run_status(openai_object, thread_object, run_object)
+
+    # list messages of a thread
     messages = list_messages(openai_object, thread_object)
 
+    # access message content
     for message in messages:
         if message.role == "assistant":
             for content in message.content:
@@ -112,7 +115,7 @@ def talk_to_assistant(
         else:
             response_message = f"No response available for message role: {message.role}"
 
-    # display
+    # return message content
     return response_message
 
 
