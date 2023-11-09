@@ -15,10 +15,10 @@ def initiate_openai(key_in_dotenv="OPENAI_API_KEY", raw_key=None):
 
 
 def create_assistant(
-    prompt=None,
+    role_or_name=None,
+    instructions_prompt=None,
     model="gpt-3.5-turbo",
     tools=[],
-    name=None,
     dotenv_openai_api_key="OPENAI_API_KEY",
     raw_openai_api_key=None,
 ):
@@ -31,7 +31,7 @@ def create_assistant(
         return
 
     return openai_object, openai_object.beta.assistants.create(
-        instructions=prompt, model=model, tools=tools, name=name
+        instructions=instructions_prompt, model=model, tools=tools, name=role_or_name
     )
 
 
