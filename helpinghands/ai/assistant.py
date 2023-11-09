@@ -49,7 +49,7 @@ def retrieve_run(openai_object, thread_object, run_object):
     )
 
 
-def check_run_status(openai_object, thread_object, run_object):
+def check_on_run(openai_object, thread_object, run_object):
     iteration = 0
     while True:
         run_response = retrieve_run(openai_object, thread_object, run_object)
@@ -100,7 +100,7 @@ def talk_to_assistant(
     )
 
     # retrieve run object
-    run_status = check_run_status(openai_object, thread_object, run_object)
+    run_status = check_on_run(openai_object, thread_object, run_object)
 
     # list messages of a thread
     messages = list_messages(openai_object, thread_object)
