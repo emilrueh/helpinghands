@@ -137,13 +137,13 @@ def init_conversation(
     current_user_name=None,
 ):
     # settings
-    greeting = "Greet the user kindly with a very short message."
+    greeting = "Introduce yourself briefly and greet the user kindly with an extremely short message."
     goodbye = "Bye, bye."
     if current_user_name:
         greeting += f"The user's name is {current_user_name}."
 
-    user_prompt = None
-    run_instructions = None
+    user_prompt = greeting
+    run_instructions = None  # ?
 
     # create thread
     thread_object = create_thread(openai_object)
@@ -156,8 +156,8 @@ def init_conversation(
             openai_object,
             assistant_object,
             thread_object,
-            user_prompt=user_prompt if user_prompt else "Only listen to your instructions.",
-            run_instructions=run_instructions if user_prompt else greeting,
+            user_prompt=user_prompt,
+            run_instructions=run_instructions,
         )
 
         # process assistant_response:
