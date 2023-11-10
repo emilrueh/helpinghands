@@ -15,8 +15,8 @@ def init_openai(key_in_dotenv="OPENAI_API_KEY", raw_key=None):
 
 
 def create_assistant(
-    role_or_name=None,
     instructions_prompt=None,
+    role_or_name=None,
     model="gpt-3.5-turbo",
     tools=[],
     dotenv_openai_api_key="OPENAI_API_KEY",
