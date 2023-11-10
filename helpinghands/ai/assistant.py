@@ -165,5 +165,3 @@ def init_conversation(
     # fmt: on
 
     print(f"\n{goodbye}\n")
-
-    return thread_object.id
