@@ -27,8 +27,8 @@ def create_assistant(
     """
     openai_object = init_openai(dotenv_openai_api_key, raw_key=raw_openai_api_key)
     if openai_object.api_key is None:
-        print("No 'OpenAI API Key' provided. Exiting...")
-        return
+        print("\nNo 'OpenAI API Key' provided. Exiting...")
+        quit()
 
     assistant_object = openai_object.beta.assistants.create(
         instructions=instructions_prompt, model=model, tools=tools, name=role_or_name
