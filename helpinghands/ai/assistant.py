@@ -1,29 +1,20 @@
 from time import sleep
+from openai import OpenAI
+from dotenv import load_dotenv
+import os
 
 
 # setup
-# def init_openai(key_in_dotenv="OPENAI_API_KEY", raw_key=None):
-#     # imports
-#     import openai
-#     from dotenv import load_dotenv
-#     import os
-
-#     load_dotenv()
-
-#     openai.api_key = os.getenv(key_in_dotenv) or raw_key
-
-#     return openai
-
-
-def init_openai(dotenv_key="OPENAI_API_KEY", raw_key=None):
-    # imports
-    from openai import OpenAI
-    from dotenv import load_dotenv
-    import os
-
+def init_openai(raw_api_key=None, dotenv_key=None):
     load_dotenv()
 
-    return OpenAI(api_key=os.getenv(dotenv_key) or raw_key)
+    api_key = (
+        os.getenv(dotenv_key)
+        if dotenv_key and dotenv_key != "OPENAI_API_KEY"
+        else raw_api_key
+    )
+
+    return OpenAI(api_key=api_key)
 
 
 def create_assistant(
