@@ -2,16 +2,28 @@ from time import sleep
 
 
 # setup
-def init_openai(key_in_dotenv="OPENAI_API_KEY", raw_key=None):
+# def init_openai(key_in_dotenv="OPENAI_API_KEY", raw_key=None):
+#     # imports
+#     import openai
+#     from dotenv import load_dotenv
+#     import os
+
+#     load_dotenv()
+
+#     openai.api_key = os.getenv(key_in_dotenv) or raw_key
+
+#     return openai
+
+
+def init_openai(dotenv_key="OPENAI_API_KEY", raw_key=None):
     # imports
-    import openai
+    from openai import OpenAI
     from dotenv import load_dotenv
     import os
 
     load_dotenv()
-    openai_api_key = os.getenv(key_in_dotenv) or raw_key
-    openai.api_key = openai_api_key
-    return openai
+
+    return OpenAI(api_key=os.getenv(dotenv_key) or raw_key)
 
 
 def create_assistant(
@@ -25,51 +37,51 @@ def create_assistant(
     """
     Pass the API Key via the .env file key defined in 'dotenv_openai_api_key' or directly via 'raw_openai_api_key'.
     """
-    openai_object = init_openai(dotenv_openai_api_key, raw_key=raw_openai_api_key)
-    if openai_object.api_key is None:
+    openai_client = init_openai(dotenv_openai_api_key, raw_key=raw_openai_api_key)
+    if openai_client.api_key is None:
         print("\nNo 'OpenAI API Key' provided. Exiting...")
         quit()
 
-    assistant_object = openai_object.beta.assistants.create(
+    assistant_obj = openai_client.beta.assistants.create(
         instructions=instructions_prompt, model=model, tools=tools, name=role_or_name
     )
-    return openai_object, assistant_object
+    return openai_client, assistant_obj
 
 
 # initiate new conversation
-def create_thread(openai_object):
-    return openai_object.beta.threads.create()
+def create_thread(openai_client):
+    return openai_client.beta.threads.create()
 
 
 # add message to thread
-def create_message(openai_object, thread_object, prompt, role="user"):
-    return openai_object.beta.threads.messages.create(
-        thread_id=thread_object.id,
+def create_message(openai_client, thread_obj, prompt, role="user"):
+    return openai_client.beta.threads.messages.create(
+        thread_id=thread_obj.id,
         role=role,
         content=prompt,
     )
 
 
 # process messages in thread
-def create_run(openai_object, assistant_object, thread_object, prompt):
-    return openai_object.beta.threads.runs.create(
-        thread_id=thread_object.id,
-        assistant_id=assistant_object.id,
+def create_run(openai_client, assistant_obj, thread_obj, prompt):
+    return openai_client.beta.threads.runs.create(
+        thread_id=thread_obj.id,
+        assistant_id=assistant_obj.id,
         instructions=prompt,
     )
 
 
 # get response from run
-def retrieve_run(openai_object, thread_object, run_object):
-    return openai_object.beta.threads.runs.retrieve(
-        thread_id=thread_object.id, run_id=run_object.id
+def retrieve_run(openai_client, thread_obj, run_obj):
+    return openai_client.beta.threads.runs.retrieve(
+        thread_id=thread_obj.id, run_id=run_obj.id
     )
 
 
-def check_on_run(openai_object, thread_object, run_object):
+def check_on_run(openai_client, thread_obj, run_obj):
     iteration = 0
     while True:
-        run_response = retrieve_run(openai_object, thread_object, run_object)
+        run_response = retrieve_run(openai_client, thread_obj, run_obj)
         status = run_response.status
 
         # status check
@@ -92,35 +104,35 @@ def check_on_run(openai_object, thread_object, run_object):
 
         iteration += 1
         sleep(3)
-    return run_object.id
+    return run_obj.id
 
 
 # display all message in the conversation
-def list_messages(openai_object, thread_object):
-    return openai_object.beta.threads.messages.list(thread_id=thread_object.id)
+def list_messages(openai_client, thread_obj):
+    return openai_client.beta.threads.messages.list(thread_id=thread_obj.id)
 
 
 # send message and get reply
 def talk_to_assistant(
-    openai_object,
-    assistant_object,
-    thread_object,
+    openai_client,
+    assistant_obj,
+    thread_obj,
     user_prompt: str,
     run_instructions: str = None,
 ):
     # create message and add to thread
-    message = create_message(openai_object, thread_object, prompt=user_prompt)
+    message = create_message(openai_client, thread_obj, prompt=user_prompt)
 
     # create run for messages in thread
     run_object = create_run(
-        openai_object, assistant_object, thread_object, prompt=run_instructions
+        openai_client, assistant_obj, thread_obj, prompt=run_instructions
     )
 
     # retrieve run object
-    run_id = check_on_run(openai_object, thread_object, run_object)
+    run_id = check_on_run(openai_client, thread_obj, run_object)
 
     # list messages of a thread
-    messages = list_messages(openai_object, thread_object)
+    messages = list_messages(openai_client, thread_obj)
 
     # access content of last message
     for message in messages.data:
@@ -133,9 +145,9 @@ def talk_to_assistant(
 
 # re-usable implementation
 def init_conversation(
-    openai_object,
-    assistant_object,
-    thread_object,
+    openai_client,
+    assistant_obj,
+    thread_obj,
     current_user_name=None,
     run_instructions=None,
 ):
@@ -153,9 +165,9 @@ def init_conversation(
 
         # process user_prompt:
         assistant_response = talk_to_assistant(
-            openai_object,
-            assistant_object,
-            thread_object,
+            openai_client,
+            assistant_obj,
+            thread_obj,
             user_prompt=user_prompt,
             run_instructions=run_instructions,
         )
