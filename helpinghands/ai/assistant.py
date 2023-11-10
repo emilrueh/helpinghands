@@ -100,7 +100,7 @@ def list_messages(openai_object, thread_object):
     return openai_object.beta.threads.messages.list(thread_id=thread_object.id)
 
 
-# re-usable implementation
+# send message and get reply
 def talk_to_assistant(
     openai_object,
     assistant_object,
@@ -131,11 +131,13 @@ def talk_to_assistant(
     return reply
 
 
+# re-usable implementation
 def init_conversation(
     openai_object,
     assistant_object,
     thread_object,
     current_user_name=None,
+    run_instructions=None,
 ):
     # settings
     greeting = "Introduce yourself briefly and greet the user kindly with an extremely short message."
@@ -144,11 +146,11 @@ def init_conversation(
         greeting += f"The user's name is {current_user_name}."
 
     user_prompt = greeting
-    run_instructions = None  # ?
 
     # fmt: off
     # talk to the assistant in the current thread
     while user_prompt not in ["break", "stop", "quit", "exit", "q"]:
+
         # process user_prompt:
         assistant_response = talk_to_assistant(
             openai_object,
@@ -161,7 +163,7 @@ def init_conversation(
         # process assistant_response:
         print(f"\n{assistant_response}")
 
-        user_prompt = input("\n> ")
+        user_prompt = input("\n> ")  # question
     # fmt: on
 
     print(f"\n{goodbye}\n")
