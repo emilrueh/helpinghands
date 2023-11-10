@@ -134,6 +134,7 @@ def talk_to_assistant(
 def init_conversation(
     openai_object,
     assistant_object,
+    thread_object,
     current_user_name=None,
 ):
     # settings
@@ -144,9 +145,6 @@ def init_conversation(
 
     user_prompt = greeting
     run_instructions = None  # ?
-
-    # create thread
-    thread_object = create_thread(openai_object)
 
     # fmt: off
     # talk to the assistant in the current thread
