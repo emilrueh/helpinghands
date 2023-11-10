@@ -5,7 +5,7 @@ import os
 
 
 # setup
-def init_openai(raw_api_key=None, dotenv_key=None):
+def init_openai_client(raw_api_key=None, dotenv_key=None):
     load_dotenv()
 
     api_key = (
@@ -28,7 +28,9 @@ def create_assistant(
     """
     Pass the API Key via the .env file key defined in 'dotenv_openai_api_key' or directly via 'raw_openai_api_key'.
     """
-    openai_client = init_openai(dotenv_openai_api_key, raw_key=raw_openai_api_key)
+    openai_client = init_openai_client(
+        dotenv_openai_api_key, raw_key=raw_openai_api_key
+    )
     if openai_client.api_key is None:
         print("\nNo 'OpenAI API Key' provided. Exiting...")
         quit()
