@@ -46,6 +46,31 @@ def image_to_base64str(image_source, file_type="JPEG"):
         return None
 
 
+def save_b64str_images_to_file(
+    images: list, files_directory: str = "./", file_extension: str = None
+):
+    for i, image in enumerate(images):
+        # Decode the base64 string
+        image_data = base64.b64decode(image.split(",")[1])
+
+        # Optionally process the image with PIL (e.g., convert format)
+        with Image.open(BytesIO(image_data)) as img_obj:
+            # get the file extension
+            ext = file_extension or img_obj.format.lower()
+
+            buffered = BytesIO()
+            img_obj.convert("RGB").save(buffered, format=ext)
+            buffered.seek(0)
+            output_image_bytes = buffered.read()
+
+        # fmt: off
+        # Write the image bytes to a file
+        with open(os.path.join(
+                files_directory, f"generated_image_{i}.{ext}"
+            ), mode="wb") as file:
+            file.write(output_image_bytes)
+
+
 # ---
 
 # DALL-E 3
