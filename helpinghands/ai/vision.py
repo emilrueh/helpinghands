@@ -74,8 +74,6 @@ def save_b64str_images_to_file(
 # ---
 
 # DALL-E 3
-
-
 def generate_image(prompt):
     response = client.images.generate(
         model="dall-e-3", prompt=prompt, size="1024x1024", quality="standard", n=1
