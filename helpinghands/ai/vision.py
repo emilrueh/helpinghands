@@ -66,12 +66,13 @@ def save_b64str_images_to_file(
         # fmt: off
         # Write the image bytes to a file
         with open(os.path.join(
-                files_directory, f"generated_image_{i}.{ext}"
+                files_directory, f"generated_image_{i + 1}.{ext}"
             ), mode="wb") as file:
             file.write(output_image_bytes)
 
 
 # ---
+
 
 # DALL-E 3
 def generate_image(prompt):
