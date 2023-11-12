@@ -37,12 +37,17 @@ def image_to_base64str(image_source, file_type="JPEG"):
     try:
         with Image.open(image_data) as image:
             buffered = BytesIO()
+            # Convert to RGB if necessary
+            if image.mode in ("RGBA", "LA") or (
+                image.mode == "P" and "transparency" in image.info
+            ):
+                image = image.convert("RGB")
             image.save(buffered, format=file_type.upper())
             image_bytes = buffered.getvalue()
             base64_encoded = base64.b64encode(image_bytes).decode("utf-8")
             return f"data:image/{file_type.lower()};base64,{base64_encoded}"
     except Exception as e:
-        print(f"Error converting image: {e}")
+        print(f"{type(e).__name__} converting image: {e}")
         return None
 
 
@@ -75,9 +80,9 @@ def save_b64str_images_to_file(
 
 
 # DALL-E 3
-def generate_image(prompt):
+def generate_image(prompt, size="1024x1024", amount=1, ai_model="dall-e-3"):
     response = client.images.generate(
-        model="dall-e-3", prompt=prompt, size="1024x1024", quality="standard", n=1
+        model=ai_model, prompt=prompt, size=size, quality="standard", n=amount
     )
     return response.data[0].url
 
@@ -112,25 +117,38 @@ def view_image(images_in_base64str: list, prompt, max_tokens=300):
 
 
 # ---
+def chat(prompt, instructions, model="gpt-3.5-turbo"):
+    response = client.chat.completions.create(
+        model=model,
+        messages=[
+            {"role": "system", "content": instructions},
+            {"role": "user", "content": prompt},
+        ],
+    )
+    return response.choices[0].message.content
 
 
-def image_generation_iteration(image: str, iterations: int = 3, directory: str = None):
+def image_generation_iteration(
+    image: str,
+    iterations: int = 3,
+    directory: str = None,
+    retry_prompt: str = "Please adjust the following description to avoid getting it flagged due to violations via certain words. {} Here is the prompt: ",
+):
     """
     Idea:
         loop:
             - take an image
             - turn it to base64 string
-            1 send to gpt4 to generate description
-            2 let image be generated from gpt4-vision from description
-            - save generated image to file (seperate function)
 
-    Things wrong:
+            1 - send to gpt4 to generate description
+            2 - let image be generated from gpt4-vision from description
 
-        X the output images need to be saved to files
-            X in the function or outside?
+            - save generated image to file
+              (seperate function)
 
-        X the image_generated need to be base64string from url
-            X download and transform (in the function or outside?)
+            3 - ask gpt what it thinks the percantage difference between
+                the two images is and between the prompts and create dataset
+                (seperate function)
     """
 
     image_generated_b64str = None
@@ -143,7 +161,7 @@ def image_generation_iteration(image: str, iterations: int = 3, directory: str =
         os.makedirs(directory)
 
     for i in range(iterations):
-        print("> Iteration:", i + 1)
+        print("\n> Iteration:", i + 1)
 
         # take an image and transform it to base 64 string
         print("> Transforming original image to base 64 string...")
@@ -176,11 +194,30 @@ def image_generation_iteration(image: str, iterations: int = 3, directory: str =
         print("> Analyzing image...")
         prompt_generate = view_image(images_to_analyze, prompt_for_view_image)
 
-        # generate image
-        print("> Generating image...")
-        image_generated_url = generate_image(prompt_generate)
+        retries = 3
+        while retries != 0:
+            try:
+                # generate image
+                print("> Generating image...")
+                image_generated_url = generate_image(prompt_generate)
+                break
+            except Exception as e:
+                image_generated_url = None
+                print(f"{type(e).__name__} - {e}\n> Retrying with new prompt...")
+                prompt_generate = chat(
+                    f"{retry_prompt}{prompt_generate} Here it is: ",
+                    instructions=" Only respond with the adjusted prompt.",
+                )
+            finally:
+                retries -= 1
 
-        print(f"prompt_generate = {prompt_generate}")
+        if image_generated_url is None:
+            print("> No image url available. Exiting...")
+            if images_b64strings:
+                return images_b64strings
+            quit()
+
+        print(f"\nprompt_generate = {prompt_generate}\n")
         print(f"image_generated_url = {image_generated_url}")
 
         # transorm image to base 64 string
