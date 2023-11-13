@@ -29,7 +29,7 @@ def create_assistant(
     Pass the API Key via the .env file key defined in 'dotenv_openai_api_key' or directly via 'raw_openai_api_key'.
     """
     openai_client = init_openai_client(
-        dotenv_openai_api_key, raw_key=raw_openai_api_key
+        dotenv_key=dotenv_openai_api_key, raw_api_key=raw_openai_api_key
     )
     if openai_client.api_key is None:
         print("\nNo 'OpenAI API Key' provided. Exiting...")
@@ -136,14 +136,52 @@ def talk_to_assistant(
     return reply
 
 
-# re-usable implementation
 def init_conversation(
-    openai_client,
-    assistant_obj,
-    thread_obj,
-    current_user_name=None,
-    run_instructions=None,
+    role="You are a helpful assistant.",
+    instructions="Your task is to do basic computer work.",
 ):
+    # setup openai assistant
+    openai_client, assistant_obj = create_assistant(
+        instructions_prompt=instructions, role_or_name=role
+    )
+
+    # create thread (conversation)
+    thread_obj = create_thread(openai_client)
+
+    return openai_client, assistant_obj, thread_obj
+
+
+# re-usable implementation
+def have_conversation(
+    openai_client=None,
+    assistant_obj=None,
+    thread_obj=None,
+    current_user_name=None,
+    assistant_role=None,
+    assistant_instructions=None,
+    run_instructions=None,  # what do I use those run instructions for?
+    conversation_id=None,
+    output_processing="print",
+    output_directory=None,
+):
+    # initialize new conversation and new assistant plus openai client
+    if openai_client is None and assistant_obj is None and thread_obj is None:
+        print("Initializing new conversation...")
+        openai_client, assistant_obj, thread_obj = init_conversation(
+            role=assistant_role, instructions=assistant_instructions
+        )
+
+    # error for later implementation of seperate setups
+    elif openai_client is None or assistant_obj is None or thread_obj is None:
+        print(
+            "Error: Sorry! The 'have_ conversation' function takes either all or none prerequisites.\nYou provided either one or two.\n\nExiting..."
+        )
+        quit()
+
+    # continue a previous conversation
+    elif conversation_id:
+        pass  # thread managment
+
     # settings
     greeting = "Introduce yourself briefly and greet the user kindly with an extremely short message."
     goodbye = "Bye, bye."
@@ -153,10 +191,12 @@ def init_conversation(
     user_prompt = greeting
 
     # fmt: off
+    # CONVERSATION LOOP
     # talk to the assistant in the current thread
     while user_prompt not in ["break", "stop", "quit", "exit", "q"]:
 
-        # process user_prompt:
+        # PROCESS USER INPUT:
+        print("Processing...")
         assistant_response = talk_to_assistant(
             openai_client,
             assistant_obj,
@@ -165,10 +205,71 @@ def init_conversation(
             run_instructions=run_instructions,
         )
 
-        # process assistant_response:
-        print(f"\n{assistant_response}")
+        # SYSTEM OUTPUT
+        print("Chosing system output...")
+        system_output = choose_output(assistant_response, style=output_processing, output_directory=output_directory)
+        print(system_output)
+        # print(f"\n{system_output}")
 
-        user_prompt = input("\n> ")  # question
+        # USER INPUT
+        user_prompt = input("\n> ")
+    
+    print(f"\n{goodbye}\n")
     # fmt: on
 
-    print(f"\n{goodbye}\n")
+    # store and return for later processing
+    assistant_id = assistant_obj.id
+    thread_id = thread_obj.id
+
+    return assistant_id, thread_id
+
+
+from random import choice
+
+
+# SELECT OUTPUT PROCESSING
+def choose_output(text, style=None, output_directory=None):
+    if style == "print":
+        print(text)
+    elif style == "voice":
+        if output_directory is None:
+            print("Warning: No output directory for gTTS specified.")
+
+        print("Executing speaking...")
+        filepath = speaking(text, output_directory)
+        print(f"gTTS file saved to: {filepath}")
+
+        # play music tracks
+        print("Playing music...")
+        beats_dir = os.path.join(output_directory, "beats")
+        print(beats_dir)
+        files = os.listdir(beats_dir)
+        print(files)
+        random_music_file = os.path.join(beats_dir, choice(files))
+        print(random_music_file)
+        play_sound(random_music_file)
+
+
+from gtts import gTTS
+
+import pygame
+
+
+def play_sound(file_path):
+    pygame.mixer.init()
+
+    sound = pygame.mixer.Sound(file_path)
+
+    sound.play()
+
+    # wait for sound to finish playing
+    # while pygame.mixer.get_busy():
+    #     pygame.time.Clock().tick(10)
+
+
+def speaking(text, output_directory, output_file_name="gtts_output.mp3", lang="en"):
+    output_file_path = os.path.join(output_directory, output_file_name)
+    tts = gTTS(text=text, lang=lang)
+    tts.save(output_file_path)
+    play_sound(output_file_path)
+    return output_file_path
