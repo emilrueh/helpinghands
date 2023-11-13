@@ -225,6 +225,7 @@ def have_conversation(
 
 
 from random import choice
+import time
 
 
 # SELECT OUTPUT PROCESSING
@@ -235,29 +236,71 @@ def choose_output(text, style=None, output_directory=None):
         if output_directory is None:
             print("Warning: No output directory for gTTS specified.")
 
+        # creating voice audio file
         print("Executing speaking...")
-        filepath = speaking(text, output_directory)
-        print(f"gTTS file saved to: {filepath}")
 
-        # play music tracks
+        gtts_path = speaking(text, output_directory)
+        print(f"gTTS file saved to: {gtts_path}")
+
+        # select music tracks
         print("Playing music...")
+
         beats_dir = os.path.join(output_directory, "beats")
+
+        adjusted_bpm_beats_dir = os.path.join(beats_dir, "adjusted_bpm")
+
         print(beats_dir)
-        files = os.listdir(beats_dir)
-        print(files)
-        random_music_file = os.path.join(beats_dir, choice(files))
-        print(random_music_file)
-        play_sound(random_music_file)
+        print(adjusted_bpm_beats_dir)
+
+        music_paths = [
+            f
+            for f in os.listdir(beats_dir)
+            if os.path.isfile(os.path.join(beats_dir, f))
+        ]
+        print(music_paths)
+
+        random_music_file_path = os.path.join(beats_dir, choice(music_paths))
+        print(f"Random music file chosen: {random_music_file_path}")
+
+        # matching audio tempo
+        print("Matching audio file tempo...")
+
+        voice_tempo = get_tempo(gtts_path)
+        music_tempo = get_tempo(random_music_file_path)
+
+        voice_altered = match_tempo(gtts_path, 120, original_tempo=voice_tempo)
+        music_altered = match_tempo(
+            random_music_file_path, 120, original_tempo=music_tempo
+        )
+
+        # Export the adjusted audio
+        print("Exporting adjusted audio files...")
+        # fmt: off
+        new_voice_filename = os.path.basename(gtts_path).replace(".mp3", "_bpm.mp3")
+        new_voice_path = os.path.join(adjusted_bpm_beats_dir, new_voice_filename)
+
+        new_music_filename = os.path.basename(random_music_file_path).replace(".mp3", "_bpm.mp3")
+        new_music_path = os.path.join(adjusted_bpm_beats_dir, new_music_filename)
+        # fmt: on
+        print(f"Trying to save altered files to: {new_voice_path}\nand{new_music_path}")
+        voice_altered.export(new_voice_path, format="mp3")
+        music_altered.export(new_music_path, format="mp3")
+
+        # playing output
+        print("Playing audio files...")
+
+        play_sound(new_voice_path)  # playing voice
+        play_sound(new_music_path)  # playing music
 
 
 from gtts import gTTS
 
 import pygame
 
+pygame.mixer.init()
+
 
 def play_sound(file_path):
-    pygame.mixer.init()
-
     sound = pygame.mixer.Sound(file_path)
 
     sound.play()
@@ -271,5 +314,28 @@ def speaking(text, output_directory, output_file_name="gtts_output.mp3", lang="e
     output_file_path = os.path.join(output_directory, output_file_name)
     tts = gTTS(text=text, lang=lang)
     tts.save(output_file_path)
-    play_sound(output_file_path)
     return output_file_path
+
+
+# tempo matching of voice and beat
+import librosa
+
+
+def get_tempo(file_path):
+    y, sr = librosa.load(file_path)
+    onset_env = librosa.onset.onset_strength(y=y, sr=sr)
+    tempo = librosa.beat.tempo(onset_envelope=onset_env, sr=sr)
+    return tempo[0]
+
+
+from pydub import AudioSegment
+import os
+
+
+def match_tempo(original_file, target_tempo, original_tempo):
+    ratio = target_tempo / original_tempo
+    sound = AudioSegment.from_file(original_file)
+    sound_with_altered_frame_rate = sound._spawn(
+        sound.raw_data, overrides={"frame_rate": int(sound.frame_rate * ratio)}
+    ).set_frame_rate(sound.frame_rate)
+    return sound_with_altered_frame_rate
