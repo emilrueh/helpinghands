@@ -14,15 +14,14 @@ german_tutor_role = "You are a German tutor named Heinrich. You only speak Germa
 german_tutor_task = "Interrup and correct the user whenever they make gramatical and spelling mistakes speaking German to you. If the user asks questions in English you need to interrupt and ask the user to speak German only."
 
 # freestyle_rapper
-freestyle_rapper_words = input("\nEnter three words:\n> ")
+freestyle_rapper_words = input("\nEnter three words or a picture:\n\n> ")
 
 freestyle_rapper_role = "You are a world class freestyle rapper."
 freestyle_rapper_task = f"""
-Your task is to write three emotional rap song verses with a chorus inbetween each. It has to be inspired by the following three words given by the user. 
+Your task is to write a full emotional rap song. It has to be inspired by the following three words given by the user. 
 Create an engaging storyline around the words. 
 Make sure to use each word at least twice in a rhyme. 
-Use a good rhyme pattern and a rythm that can go over any beat. 
-Respond without saying 'verse 1' or 'chorus' or anyhting similar.
+Use a good rhyme pattern and a rythm that can go over any beat.
 
 Here are the three words:
 {freestyle_rapper_words}
