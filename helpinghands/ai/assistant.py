@@ -157,6 +157,7 @@ def have_conversation(
     assistant_obj=None,
     thread_obj=None,
     current_user_name=None,
+    initial_user_prompt="Hi, my name is {}",
     assistant_role=None,
     assistant_instructions=None,
     run_instructions=None,  # what do I use those run instructions for?
@@ -183,16 +184,19 @@ def have_conversation(
         pass  # thread managment
 
     # settings
-    greeting = "Introduce yourself briefly and greet the user kindly with an extremely short message."
-    goodbye = "Bye, bye."
-    if current_user_name:
-        greeting += f"The user's name is {current_user_name}."
-
-    user_prompt = greeting
 
     # fmt: off
     # CONVERSATION LOOP
     # talk to the assistant in the current thread
+    # add username to initial greeting if nothing else provided
+    conversation_iteration = 0
+
+    if current_user_name and initial_user_prompt and "{}" in initial_user_prompt:
+        initial_user_prompt = initial_user_prompt.format(current_user_name)
+    elif current_user_name and not initial_user_prompt:
+        initial_user_prompt += current_user_name
+    user_prompt = initial_user_prompt
+
     while user_prompt not in ["break", "stop", "quit", "exit", "q"]:
 
         # PROCESS USER INPUT:
@@ -206,15 +210,21 @@ def have_conversation(
         )
 
         # SYSTEM OUTPUT
-        print("Chosing system output...")
-        system_output = choose_output(assistant_response, style=output_processing, output_directory=output_directory)
-        print(system_output)
+        print("Choosing system output...")
+        if conversation_iteration < 1:
+            # choose simple print on first iteration
+            system_output = choose_output(assistant_response, style="print")
+        else:
+            # choose voice output on concecutive iterations
+            system_output = choose_output(assistant_response, style=output_processing, output_directory=output_directory)
+        # print(system_output)
         # print(f"\n{system_output}")
 
         # USER INPUT
         user_prompt = input("\n> ")
+        conversation_iteration += 1
     
-    print(f"\n{goodbye}\n")
+    print(f"\nBye bye.\n")
     # fmt: on
 
     # store and return for later processing
@@ -235,62 +245,65 @@ def choose_output(text, style=None, output_directory=None):
     elif style == "voice":
         if output_directory is None:
             print("Warning: No output directory for gTTS specified.")
+        voice_output(text, output_directory)
 
-        # creating voice audio file
-        print("Executing speaking...")
 
-        gtts_path = speaking(text, output_directory)
-        print(f"gTTS file saved to: {gtts_path}")
+def voice_output(text, output_directory):
+    # creating voice audio file
+    print("Executing speaking...")
 
-        # select music tracks
-        print("Playing music...")
+    gtts_path = speaking(text, output_directory)
+    print(f"gTTS file saved to: {gtts_path}")
 
-        beats_dir = os.path.join(output_directory, "beats")
+    align_bpm_with_voice_and_play_music(gtts_path, output_directory)
 
-        adjusted_bpm_beats_dir = os.path.join(beats_dir, "adjusted_bpm")
 
-        print(beats_dir)
-        print(adjusted_bpm_beats_dir)
+def align_bpm_with_voice_and_play_music(voice_file_path, output_directory):
+    # select music tracks
+    print("Playing music...")
 
-        music_paths = [
-            f
-            for f in os.listdir(beats_dir)
-            if os.path.isfile(os.path.join(beats_dir, f))
-        ]
-        print(music_paths)
+    beats_dir = os.path.join(output_directory, "beats")
 
-        random_music_file_path = os.path.join(beats_dir, choice(music_paths))
-        print(f"Random music file chosen: {random_music_file_path}")
+    adjusted_bpm_beats_dir = os.path.join(beats_dir, "adjusted_bpm")
 
-        # matching audio tempo
-        print("Matching audio file tempo...")
+    print(beats_dir)
+    print(adjusted_bpm_beats_dir)
 
-        voice_tempo = get_tempo(gtts_path)
-        music_tempo = get_tempo(random_music_file_path)
+    music_paths = [
+        f for f in os.listdir(beats_dir) if os.path.isfile(os.path.join(beats_dir, f))
+    ]
+    print(music_paths)
 
-        voice_altered = match_tempo(gtts_path, 120, original_tempo=voice_tempo)
-        music_altered = match_tempo(
-            random_music_file_path, 120, original_tempo=music_tempo
-        )
+    random_music_file_path = os.path.join(beats_dir, choice(music_paths))
+    print(f"Random music file chosen: {random_music_file_path}")
 
-        # Export the adjusted audio
-        print("Exporting adjusted audio files...")
-        # fmt: off
-        new_voice_filename = os.path.basename(gtts_path).replace(".mp3", "_bpm.mp3")
-        new_voice_path = os.path.join(adjusted_bpm_beats_dir, new_voice_filename)
+    # matching audio tempo
+    print("Matching audio file tempo...")
 
-        new_music_filename = os.path.basename(random_music_file_path).replace(".mp3", "_bpm.mp3")
-        new_music_path = os.path.join(adjusted_bpm_beats_dir, new_music_filename)
-        # fmt: on
-        print(f"Trying to save altered files to: {new_voice_path}\nand{new_music_path}")
-        voice_altered.export(new_voice_path, format="mp3")
-        music_altered.export(new_music_path, format="mp3")
+    voice_tempo = get_tempo(voice_file_path)
+    music_tempo = get_tempo(random_music_file_path)
 
-        # playing output
-        print("Playing audio files...")
+    voice_altered = match_tempo(voice_file_path, 120, original_tempo=voice_tempo)
+    music_altered = match_tempo(random_music_file_path, 120, original_tempo=music_tempo)
 
-        play_sound(new_voice_path)  # playing voice
-        play_sound(new_music_path)  # playing music
+    # Export the adjusted audio
+    print("Exporting adjusted audio files...")
+    # fmt: off
+    new_voice_filename = os.path.basename(voice_file_path).replace(".mp3", "_bpm.mp3")
+    new_voice_path = os.path.join(adjusted_bpm_beats_dir, new_voice_filename)
+
+    new_music_filename = os.path.basename(random_music_file_path).replace(".mp3", "_bpm.mp3")
+    new_music_path = os.path.join(adjusted_bpm_beats_dir, new_music_filename)
+    # fmt: on
+    print(f"Trying to save altered files to: {new_voice_path}\nand{new_music_path}")
+    voice_altered.export(new_voice_path, format="mp3")
+    music_altered.export(new_music_path, format="mp3")
+
+    # playing output
+    print("Playing audio files...")
+
+    play_sound(new_voice_path)  # playing voice
+    play_sound(new_music_path, volume=0.15)  # playing music
 
 
 from gtts import gTTS
@@ -300,8 +313,10 @@ import pygame
 pygame.mixer.init()
 
 
-def play_sound(file_path):
+def play_sound(file_path, volume=1.0):
     sound = pygame.mixer.Sound(file_path)
+
+    sound.set_volume(volume)
 
     sound.play()
 
