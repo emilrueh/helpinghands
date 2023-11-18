@@ -5,9 +5,9 @@ from ..utility.decorator import retry
 import time, requests, os, pandas as pd
 import openai
 
-from ..ai.assistant import init_openai
+from ..ai.assistant import init_openai_client
 
-client = init_openai()
+client = init_openai_client()
 
 
 # updated calling
@@ -25,18 +25,18 @@ def chat(prompt, instructions, model="gpt-3.5-turbo"):
 # ---
 
 
-@retry(
-    (
-        openai.error.RateLimitError,
-        requests.exceptions.ConnectionError,
-        openai.error.APIError,
-        openai.error.ServiceUnavailableError,
-        openai.error.APIConnectionError,
-        requests.exceptions.ReadTimeout,
-        openai.error.Timeout,
-    ),
-    "simple",
-)
+# @retry(
+#     (
+#         openai.error.RateLimitError,
+#         requests.exceptions.ConnectionError,
+#         openai.error.APIError,
+#         openai.error.ServiceUnavailableError,
+#         openai.error.APIConnectionError,
+#         requests.exceptions.ReadTimeout,
+#         openai.error.Timeout,
+#     ),
+#     "simple",
+# )
 def call_gpt(api_key, gpt_model=3, prompt="How are you?", input_text="", timeout=30):
     logger = get_logger()
     if api_key:
