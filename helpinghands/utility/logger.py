@@ -47,7 +47,8 @@ def config_logger(
         if fmt_console == "%(name)s - %(levelname)s - %(module)s - %(lineno)d - %(message)s"
         else None,
         "fmt_file": fmt_file
-        if fmt_file == "%(asctime)s - %(name)s - %(levelname)s - %(module)s - %(lineno)d - %(message)s"
+        if fmt_file
+        == "%(asctime)s - %(name)s - %(levelname)s - %(module)s - %(lineno)d - %(message)s"
         else None,
         "fmt_date": fmt_date if fmt_date == "%Y-%m-%d %H:%M:%S:Ms" else None,
         "file_name": file_name if file_name == "runtime" else None,
@@ -59,7 +60,7 @@ def config_logger(
 
     base_values = {key for key, value in base_values_dict.items() if value is not None}
 
-    if base_values:
+    if base_values and prints:
         print(f"Starting with the base settings for {', '.join(base_values)}.")
 
     if file_timestamp:
@@ -84,8 +85,9 @@ def config_logger(
             lvl_file = logging.getLevelName(lvl_file.upper())
         else:
             default_lvl_file = "DEBUG"
-            print(f"Set the file level to {default_lvl_file}.")
             lvl_file = logging.getLevelName(default_lvl_file.upper())
+            if prints:
+                print(f"Set the file level to {default_lvl_file}.")
 
         f_handler.setLevel(lvl_file)
         f_handler.setFormatter(f_format)
@@ -101,8 +103,9 @@ def config_logger(
             lvl_console = logging.getLevelName(lvl_console.upper())
         else:
             default_lvl_console = "DEBUG"
-            print(f"Set the console level to {default_lvl_console}.")
             lvl_console = logging.getLevelName(default_lvl_console.upper())
+            if prints:
+                print(f"Set the console level to {default_lvl_console}.")
 
         c_handler.setLevel(lvl_console)
         c_handler.setFormatter(c_format)
@@ -112,6 +115,7 @@ def config_logger(
         logger.setLevel(lvl_root.upper())
     else:
         default_lvl_root = "DEBUG"
-        print(f"Set the root level to {default_lvl_root}.")
         logger.setLevel(default_lvl_root.upper())
+        if prints:
+            print(f"Set the root level to {default_lvl_root}.")
     return logger

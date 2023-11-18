@@ -1,8 +1,7 @@
 from ..utility.logger import get_logger
 
-import sys, time, subprocess, platform, traceback, inspect, psutil
+import sys, time, subprocess, platform, inspect, psutil
 from termcolor import colored
-from typing import Type
 
 
 # EXCEPTIONS

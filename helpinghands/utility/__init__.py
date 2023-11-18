@@ -31,6 +31,7 @@ from .data import (
     compress_image,
     add_random_files,
     clean_directory,
+    choose_random_file,
 )
 from .settings import load_settings
 from .logger import config_logger, LOGGER_NAME

@@ -5,7 +5,7 @@ from ..utility.decorator import retry
 import pandas as pd
 import numpy as np
 
-import json, re, os, subprocess, requests, time, random
+import json, re, os, subprocess, requests, random
 import tempfile, shutil, textwrap, platform, uuid, glob
 
 from pathlib import Path
@@ -60,11 +60,15 @@ def backup_data(input_data, backup_directory, input_name=None):
         raise ValueError("Unsupported data type")
 
     # Create a temporary file with the desired file name
-    with tempfile.NamedTemporaryFile(suffix=file_extension, delete=False, mode="w") as temp_file:
+    with tempfile.NamedTemporaryFile(
+        suffix=file_extension, delete=False, mode="w"
+    ) as temp_file:
         # Save the input data to the temporary file
         if isinstance(input_data, pd.DataFrame):
             input_data.to_csv(temp_file.name, index=False)
-        elif isinstance(input_data, str) and input_data.endswith((".csv", ".txt", ".json")):
+        elif isinstance(input_data, str) and input_data.endswith(
+            (".csv", ".txt", ".json")
+        ):
             with open(input_data, "r") as data_file:
                 temp_file.write(data_file.read())
         elif isinstance(input_data, dict):
@@ -93,7 +97,9 @@ def backup_data(input_data, backup_directory, input_name=None):
 
 def backup_df(data, path, i, prefix, original_type):
     logger = get_logger()
-    backup_file_temp = path.rsplit(".", 1)[0] + f"_{prefix}_{i//100}." + path.rsplit(".", 1)[1]
+    backup_file_temp = (
+        path.rsplit(".", 1)[0] + f"_{prefix}_{i//100}." + path.rsplit(".", 1)[1]
+    )
 
     data_temp = (
         pd.DataFrame.from_records(data[: i + 1])
@@ -194,13 +200,17 @@ def save_dict_to_csv(all_events_dict, csv_filename):
     for keyword, keyword_events_dict in all_events_dict.items():
         for event_id, event_info in keyword_events_dict.items():
             if event_info is not None:  # if event_info is None, we skip the event
-                info_copy = event_info.copy()  # we don't want to modify the original dict
+                info_copy = (
+                    event_info.copy()
+                )  # we don't want to modify the original dict
                 info_copy["Keyword"] = keyword
                 # info_copy["event_id"] = event_id
                 flattened_data.append(info_copy)
 
     df = pd.DataFrame(flattened_data)
-    df.to_csv(csv_filename, index=False)  # write dataframe to CSV, without the row index
+    df.to_csv(
+        csv_filename, index=False
+    )  # write dataframe to CSV, without the row index
 
 
 def create_df(data):
@@ -260,7 +270,9 @@ def delete_duplicates_add_keywords(data, columns_to_compare=None):
     df_no_duplicates = data.drop_duplicates(subset=columns_to_compare, keep="first")
 
     # Print the indexes and keywords
-    added_keywords_rows = df_no_duplicates[df_no_duplicates["Keyword"].str.contains(",", na=False)]
+    added_keywords_rows = df_no_duplicates[
+        df_no_duplicates["Keyword"].str.contains(",", na=False)
+    ]
     indexes_and_keywords = added_keywords_rows[["Keyword"]]
     logger.info("Rows that gained keywords:")
     with pd.option_context("display.max_rows", None, "display.max_columns", None):
@@ -283,7 +295,9 @@ def map_keywords_to_categories(keywords, category_dict):
                 for value in category_values:
                     categories.add(value)
             else:
-                categories.add(category_values)  # Use add method for sets instead of append
+                categories.add(
+                    category_values
+                )  # Use add method for sets instead of append
     return ",".join(categories)
 
 
@@ -299,7 +313,9 @@ def find_and_assign_tags(
         if standalone_tags:
             # Update the regular expression to consider word boundaries properly
             found_tags = [
-                tag for tag in standalone_tags if re.search(rf"(^|\s){tag.lower()}(\s|$)", text)
+                tag
+                for tag in standalone_tags
+                if re.search(rf"(^|\s){tag.lower()}(\s|$)", text)
             ]
 
         # For other tags, the substring matching is used.
@@ -314,7 +330,9 @@ def find_and_assign_tags(
     return df
 
 
-def add_relevant_tags(df, column_to_check, column_to_apply, categories_ordered, default=None):
+def add_relevant_tags(
+    df, column_to_check, column_to_apply, categories_ordered, default=None
+):
     categories_ordered_lower = [category.lower() for category in categories_ordered]
 
     def find_relevant_category(row):
@@ -368,7 +386,9 @@ def contains_gmaps(link):
         return link
 
 
-def manipulate_csv_data(file_path=None, output_filepath=None, operations=None, input_df=None):
+def manipulate_csv_data(
+    file_path=None, output_filepath=None, operations=None, input_df=None
+):
     logger = get_logger()
     """
     Perform a series of operations on a DataFrame which can be loaded from a CSV file, and save the resulting DataFrame to another CSV file.
@@ -483,7 +503,9 @@ def manipulate_csv_data(file_path=None, output_filepath=None, operations=None, i
             elif action == "language_filter":
                 languages = operation["languages"]
                 column = operation["column_name"]
-                mask = df[column].apply(lambda x: detect(x) in languages if x else False)
+                mask = df[column].apply(
+                    lambda x: detect(x) in languages if x else False
+                )
                 df = df[mask]
             elif action == "filter_for_keywords":
                 columns = operation["columns"]
@@ -492,7 +514,9 @@ def manipulate_csv_data(file_path=None, output_filepath=None, operations=None, i
                 mask = []
                 for index, row in df.iterrows():
                     row_text = " ".join(
-                        str(row[column]).lower() for column in columns if column not in skip_columns
+                        str(row[column]).lower()
+                        for column in columns
+                        if column not in skip_columns
                     )
                     if any(keyword in row_text for keyword in keywords):
                         mask.append(True)
@@ -513,7 +537,9 @@ def manipulate_csv_data(file_path=None, output_filepath=None, operations=None, i
     try:
         df.to_csv(output_filepath, index=False)
     except Exception as e:
-        logger.error(f"Error occurred while saving DataFrame to CSV: {e}", exc_info=True)
+        logger.error(
+            f"Error occurred while saving DataFrame to CSV: {e}", exc_info=True
+        )
 
     return df
 
@@ -533,12 +559,16 @@ def insert_newlines(string, every=64):
     return "\n".join(textwrap.wrap(string, every))
 
 
-def write_to_txt_file(input_text, file_name, output_directory, mode="append", encoding="utf-8"):
+def write_to_txt_file(
+    input_text, file_name, output_directory, mode="append", encoding="utf-8"
+):
     """
     Specify any mode except for 'append' for write and replace.
     """
     output_file_path = os.path.join(output_directory, f"{file_name}.txt")
-    with open(output_file_path, "a" if mode == "append" else "w", encoding=encoding) as f:
+    with open(
+        output_file_path, "a" if mode == "append" else "w", encoding=encoding
+    ) as f:
         f.write(("\n" if mode == "append" and f.tell() > 0 else "") + input_text)
 
 
@@ -632,6 +662,14 @@ def image_to_bytes(image_source, file_type="JPEG"):
 def bytes_to_base64(image_bytes, file_type="JPEG"):
     base64_image = base64.b64encode(image_bytes).decode("utf-8")
     base64_string = f"data:image/{file_type.lower()};base64,{base64_image}"
+    return base64_string
+
+
+def image_to_base64str(image_source, file_type="JPEG"):
+    dict_with_bytes = image_to_bytes(image_source, file_type)
+    base64_string = bytes_to_base64(
+        dict_with_bytes["image_bytes"], dict_with_bytes["image_format"]
+    )
     return base64_string
 
 
@@ -730,7 +768,9 @@ def add_random_files(df, column_name, file_dir):
     return df
 
 
-def clean_directory(dir_path, file_extensions=["*.csv", "*.json", "*.jpg", "*.jpeg", "*.png"]):
+def clean_directory(
+    dir_path, file_extensions=["*.csv", "*.json", "*.jpg", "*.jpeg", "*.png"]
+):
     logger = get_logger()
 
     counts = {}
@@ -748,3 +788,39 @@ def clean_directory(dir_path, file_extensions=["*.csv", "*.json", "*.jpg", "*.jp
                 logger.warning(f"Permission denied: Couldn't delete {file}")
 
     logger.info(f"Deleted {counts} files in {os.path.basename(dir_path)}")
+
+
+# def plot_correlation_matrix(df, cols, title=None, pos_threshold=0.7, neg_threshold=None):
+#     corr = df[cols].corr()
+#     plt.figure(figsize=(10, 10))
+
+#     cax = plt.matshow(
+#         corr,
+#         cmap="coolwarm",
+#         vmin=-neg_threshold if neg_threshold else pos_threshold,
+#         vmax=pos_threshold,
+#     )
+#     plt.colorbar(cax)
+
+#     plt.xticks(np.arange(len(cols)), cols, rotation=90)
+#     plt.yticks(np.arange(len(cols)), cols)
+
+#     for i in range(len(corr)):
+#         for j in range(len(corr)):
+#             plt.text(j, i, f"{corr.iloc[i, j]:.2f}", ha="center", va="center")
+
+#     if title:
+#         plt.title(title, pad=20)
+
+#     plt.show()
+
+
+def choose_random_file(directory):
+    # listing all files in beats dir
+    file_paths = [
+        f for f in os.listdir(directory) if os.path.isfile(os.path.join(directory, f))
+    ]
+    # choosing random music file from dir
+    random_file_path = os.path.join(directory, random.choice(file_paths))
+
+    return random_file_path

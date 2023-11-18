@@ -5,19 +5,38 @@ from ..utility.decorator import retry
 import time, requests, os, pandas as pd
 import openai
 
+from ..ai.assistant import init_openai_client
 
-@retry(
-    (
-        openai.error.RateLimitError,
-        requests.exceptions.ConnectionError,
-        openai.error.APIError,
-        openai.error.ServiceUnavailableError,
-        openai.error.APIConnectionError,
-        requests.exceptions.ReadTimeout,
-        openai.error.Timeout,
-    ),
-    "simple",
-)
+client = init_openai_client()
+
+
+# updated calling
+def chat(prompt, instructions, model="gpt-3.5-turbo"):
+    response = client.chat.completions.create(
+        model=model,
+        messages=[
+            {"role": "system", "content": instructions},
+            {"role": "user", "content": prompt},
+        ],
+    )
+    return response.choices[0].message.content
+
+
+# ---
+
+
+# @retry(
+#     (
+#         openai.error.RateLimitError,
+#         requests.exceptions.ConnectionError,
+#         openai.error.APIError,
+#         openai.error.ServiceUnavailableError,
+#         openai.error.APIConnectionError,
+#         requests.exceptions.ReadTimeout,
+#         openai.error.Timeout,
+#     ),
+#     "simple",
+# )
 def call_gpt(api_key, gpt_model=3, prompt="How are you?", input_text="", timeout=30):
     logger = get_logger()
     if api_key:
@@ -91,7 +110,9 @@ def gpt_loop(
         best_output_length = float("inf")
 
         while attempts < max_attempts:
-            api_output = call_gpt(api_key, gpt_model, prompt, row[column_for_input])  # CALL
+            api_output = call_gpt(
+                api_key, gpt_model, prompt, row[column_for_input]
+            )  # CALL
             time.sleep(1)
             attempts += 1
 
@@ -104,7 +125,11 @@ def gpt_loop(
                 best_output = api_output
                 best_output_length = len(api_output)
 
-            if (char_min * (1 - tolerance)) <= len(api_output) <= (char_max * (1 + tolerance)):
+            if (
+                (char_min * (1 - tolerance))
+                <= len(api_output)
+                <= (char_max * (1 + tolerance))
+            ):
                 break
 
             logger.debug(
@@ -121,14 +146,18 @@ def gpt_loop(
 
         # Save DataFrame every 100 rows
         if output_file_directory is not None:
-            backup_file = os.path.join(output_file_directory, f"output_backup_{output_file_name}.csv")
+            backup_file = os.path.join(
+                output_file_directory, f"output_backup_{output_file_name}.csv"
+            )
             if i % 100 == 0:
                 backup_df(data, backup_file, i, output_file_name.upper(), original_type)
 
     # Save the last batch which might contain less than 100 rows
     if backup_file is not None:
         backup_file_final = (
-            backup_file.rsplit(".", 1)[0] + f"_{output_file_name.upper()}_Final." + backup_file.rsplit(".", 1)[1]
+            backup_file.rsplit(".", 1)[0]
+            + f"_{output_file_name.upper()}_Final."
+            + backup_file.rsplit(".", 1)[1]
         )
 
         # Convert back to DataFrame if necessary

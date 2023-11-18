@@ -1,12 +1,18 @@
 import sounddevice as sd
 import numpy as np
 import threading, wavio
-import os, time
+import os
 
 
 class AudioRecorder:
     def __init__(
-        self, sample_rate=44100, channels=2, audio_dir=".", audio_file_name="output", stop_button="q", max_rec_time=None
+        self,
+        sample_rate=44100,
+        channels=2,
+        audio_dir=".",
+        audio_file_name="output",
+        stop_button="q",
+        max_rec_time=None,
     ):
         self.sample_rate = sample_rate
         self.channels = channels
