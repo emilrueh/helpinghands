@@ -813,3 +813,14 @@ def clean_directory(
 #         plt.title(title, pad=20)
 
 #     plt.show()
+
+
+def choose_random_file(directory):
+    # listing all files in beats dir
+    file_paths = [
+        f for f in os.listdir(directory) if os.path.isfile(os.path.join(directory, f))
+    ]
+    # choosing random music file from dir
+    random_file_path = os.path.join(directory, random.choice(file_paths))
+
+    return random_file_path
