@@ -3,6 +3,9 @@ from openai import OpenAI
 from dotenv import load_dotenv
 import os
 
+from utility.data import choose_random_file
+from audio.processing import bpm_match_two_files, play_sound, speaking
+
 
 # setup
 def init_openai_client(raw_api_key=None, dotenv_key=None):
@@ -234,8 +237,8 @@ def have_conversation(
     return assistant_id, thread_id
 
 
-from random import choice
-import time
+# Work In Progress:
+# -----------------
 
 
 # SELECT OUTPUT PROCESSING
@@ -250,107 +253,24 @@ def choose_output(text, style=None, output_directory=None):
 
 def voice_output(text, output_directory):
     # creating voice audio file
-    print("Executing speaking...")
+    voice_file_path = speaking(text, output_directory)
 
-    gtts_path = speaking(text, output_directory)
-    print(f"gTTS file saved to: {gtts_path}")
-
-    align_bpm_with_voice_and_play_music(gtts_path, output_directory)
-
-
-def align_bpm_with_voice_and_play_music(voice_file_path, output_directory):
-    # select music tracks
-    print("Playing music...")
-
+    # navigate to directories
     beats_dir = os.path.join(output_directory, "beats")
+    adj_bpm_beats_dir = os.path.join(beats_dir, "adjusted_bpm")
 
-    adjusted_bpm_beats_dir = os.path.join(beats_dir, "adjusted_bpm")
+    # choosing random file from dir
+    random_music_file_path = choose_random_file(output_directory, "beats")
 
-    print(beats_dir)
-    print(adjusted_bpm_beats_dir)
+    # bpm matching of the two files
+    new_voice_path, new_music_path = bpm_match_two_files(
+        file_path_one=voice_file_path,
+        file_path_two=random_music_file_path,
+        output_dir=adj_bpm_beats_dir,
+        tempo=120,
+    )
 
-    music_paths = [
-        f for f in os.listdir(beats_dir) if os.path.isfile(os.path.join(beats_dir, f))
-    ]
-    print(music_paths)
-
-    random_music_file_path = os.path.join(beats_dir, choice(music_paths))
-    print(f"Random music file chosen: {random_music_file_path}")
-
-    # matching audio tempo
-    print("Matching audio file tempo...")
-
-    voice_tempo = get_tempo(voice_file_path)
-    music_tempo = get_tempo(random_music_file_path)
-
-    voice_altered = match_tempo(voice_file_path, 120, original_tempo=voice_tempo)
-    music_altered = match_tempo(random_music_file_path, 120, original_tempo=music_tempo)
-
-    # Export the adjusted audio
-    print("Exporting adjusted audio files...")
-    # fmt: off
-    new_voice_filename = os.path.basename(voice_file_path).replace(".mp3", "_bpm.mp3")
-    new_voice_path = os.path.join(adjusted_bpm_beats_dir, new_voice_filename)
-
-    new_music_filename = os.path.basename(random_music_file_path).replace(".mp3", "_bpm.mp3")
-    new_music_path = os.path.join(adjusted_bpm_beats_dir, new_music_filename)
-    # fmt: on
-    print(f"Trying to save altered files to: {new_voice_path}\nand{new_music_path}")
-    voice_altered.export(new_voice_path, format="mp3")
-    music_altered.export(new_music_path, format="mp3")
-
-    # playing output
-    print("Playing audio files...")
-
-    play_sound(new_voice_path)  # playing voice
-    play_sound(new_music_path, volume=0.15)  # playing music
-
-
-from gtts import gTTS
-
-import pygame
-
-pygame.mixer.init()
-
-
-def play_sound(file_path, volume=1.0):
-    sound = pygame.mixer.Sound(file_path)
-
-    sound.set_volume(volume)
-
-    sound.play()
-
-    # wait for sound to finish playing
-    # while pygame.mixer.get_busy():
-    #     pygame.time.Clock().tick(10)
-
-
-def speaking(text, output_directory, output_file_name="gtts_output.mp3", lang="en"):
-    output_file_path = os.path.join(output_directory, output_file_name)
-    tts = gTTS(text=text, lang=lang)
-    tts.save(output_file_path)
-    return output_file_path
-
-
-# tempo matching of voice and beat
-import librosa
-
-
-def get_tempo(file_path):
-    y, sr = librosa.load(file_path)
-    onset_env = librosa.onset.onset_strength(y=y, sr=sr)
-    tempo = librosa.beat.tempo(onset_envelope=onset_env, sr=sr)
-    return tempo[0]
-
-
-from pydub import AudioSegment
-import os
-
-
-def match_tempo(original_file, target_tempo, original_tempo):
-    ratio = target_tempo / original_tempo
-    sound = AudioSegment.from_file(original_file)
-    sound_with_altered_frame_rate = sound._spawn(
-        sound.raw_data, overrides={"frame_rate": int(sound.frame_rate * ratio)}
-    ).set_frame_rate(sound.frame_rate)
-    return sound_with_altered_frame_rate
+    # playing voice
+    play_sound(new_voice_path)
+    # playing music (at lower volume)
+    play_sound(new_music_path, volume=0.2)
