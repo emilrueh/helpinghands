@@ -5,13 +5,13 @@ from ..utility.decorator import retry
 import time, requests, os, pandas as pd
 import openai
 
-from assistant import init_openai
+from ..ai.assistant import init_openai
+
+client = init_openai()
 
 
-# updated
+# updated calling
 def chat(prompt, instructions, model="gpt-3.5-turbo"):
-    client = init_openai()
-
     response = client.chat.completions.create(
         model=model,
         messages=[

@@ -16,6 +16,8 @@ from io import BytesIO
 
 import requests
 
+from ..ai.gpt import chat
+
 
 def image_to_base64str(image_source, file_type="JPEG"):
     if "http" in image_source or "https" in image_source:
@@ -112,18 +114,6 @@ def view_image(images_in_base64str: list, prompt, max_tokens=300):
         model="gpt-4-vision-preview",
         messages=messages,
         max_tokens=max_tokens,
-    )
-    return response.choices[0].message.content
-
-
-# ---
-def chat(prompt, instructions, model="gpt-3.5-turbo"):
-    response = client.chat.completions.create(
-        model=model,
-        messages=[
-            {"role": "system", "content": instructions},
-            {"role": "user", "content": prompt},
-        ],
     )
     return response.choices[0].message.content
 
