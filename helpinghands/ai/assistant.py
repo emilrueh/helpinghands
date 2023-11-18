@@ -3,8 +3,8 @@ from openai import OpenAI
 from dotenv import load_dotenv
 import os
 
-from utility.data import choose_random_file
-from audio.processing import bpm_match_two_files, play_sound, speaking
+from ..utility.data import choose_random_file
+from ..audio.processing import bpm_match_two_files, play_sound, speaking
 
 
 # setup
