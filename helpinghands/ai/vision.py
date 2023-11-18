@@ -2,14 +2,6 @@ from openai import OpenAI
 from dotenv import load_dotenv
 import os
 
-load_dotenv()
-
-client = OpenAI()
-
-# https://platform.openai.com/docs/guides/vision
-
-# ---
-
 from PIL import Image
 import base64
 from io import BytesIO
@@ -17,6 +9,12 @@ from io import BytesIO
 import requests
 
 from ..ai.gpt import chat
+
+load_dotenv()
+
+client = OpenAI()
+
+# https://platform.openai.com/docs/guides/vision
 
 
 def image_to_base64str(image_source, file_type="JPEG"):
