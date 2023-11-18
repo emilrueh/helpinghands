@@ -212,6 +212,12 @@ def have_conversation(
             run_instructions=run_instructions,
         )
 
+        # cleaning response before processing
+        if "verse" in assistant_response.lower():
+            assistant_response = assistant_response.lower().replace("verse", "")
+        if "chorus" in assistant_response.lower():
+            assistant_response = assistant_response.lower().replace("chorus", "")
+
         # SYSTEM OUTPUT
         print("Choosing system output...")
         if conversation_iteration < 1:
@@ -248,10 +254,10 @@ def choose_output(text, style=None, output_directory=None):
     elif style == "voice":
         if output_directory is None:
             print("Warning: No output directory for gTTS specified.")
-        voice_output(text, output_directory)
+        voice_output(text, output_directory, bpm=160)
 
 
-def voice_output(text, output_directory):
+def voice_output(text, output_directory, bpm=120):
     # creating voice audio file
     voice_file_path = speaking(text, output_directory)
 
@@ -260,14 +266,14 @@ def voice_output(text, output_directory):
     adj_bpm_beats_dir = os.path.join(beats_dir, "adjusted_bpm")
 
     # choosing random file from dir
-    random_music_file_path = choose_random_file(output_directory, "beats")
+    random_music_file_path = choose_random_file(beats_dir)
 
     # bpm matching of the two files
     new_voice_path, new_music_path = bpm_match_two_files(
         file_path_one=voice_file_path,
         file_path_two=random_music_file_path,
         output_dir=adj_bpm_beats_dir,
-        tempo=120,
+        tempo=bpm,
     )
 
     # playing voice
