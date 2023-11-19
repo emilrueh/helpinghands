@@ -2,6 +2,7 @@ from .whisper import call_whisper
 from .gpt import call_gpt, gpt_loop
 from .dallee import generate_image, dallee_loop
 from .assistant import have_conversation
+from .oa_tts import openai_tts
 
 try:
     from .upscale import super_image, super_image_loop
