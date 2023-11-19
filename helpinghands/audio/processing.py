@@ -23,7 +23,7 @@ def play_sound(file_path, volume=1.0, wait_to_finish=False):
             pygame.time.Clock().tick(10)
 
 
-def speaking(text, output_directory, output_file_name="gtts_output.mp3", lang="en"):
+def gtts_tts(text, output_directory, output_file_name="gtts_output.mp3", lang="en"):
     output_file_path = os.path.join(output_directory, output_file_name)
 
     # text to speech

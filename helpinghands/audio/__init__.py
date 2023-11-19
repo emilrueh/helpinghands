@@ -4,7 +4,7 @@ try:
     from .recorder import AudioRecorder  # , ContinuousRecorder
     from .processing import (
         play_sound,
-        speaking,
+        gtts_tts,
         get_tempo,
         match_tempo,
         bpm_match_two_files,
