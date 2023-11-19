@@ -4,8 +4,10 @@ from dotenv import load_dotenv
 client = OpenAI()
 
 
-def openai_tts(input_text, model="tts-1", voice="alloy"):
+def openai_tts(input_text, output_path="./oa_tts.mp3", model="tts-1", voice="alloy"):
     """
     returns the response from the openai api endpoint
     """
-    return client.audio.speech.create(model=model, voice=voice, input=input_text)
+    response = client.audio.speech.create(model=model, voice=voice, input=input_text)
+    response.stream_to_file(output_path)
+    return
