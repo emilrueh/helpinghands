@@ -1,10 +1,19 @@
-from time import sleep
 from openai import OpenAI
 from dotenv import load_dotenv
+
+from random import choice
+from time import sleep
 import os
 
 from ..utility.data import choose_random_file
-from ..audio.processing import bpm_match_two_files, play_sound, speaking
+from ..audio.processing import (
+    bpm_match_two_files,
+    play_sound,
+    gtts_tts,
+    get_audio_length,
+)
+from ..ai.oa_tts import openai_tts
+from ..audio.music import generate_music
 
 
 # setup
@@ -167,6 +176,9 @@ def have_conversation(
     conversation_id=None,
     output_processing="print",
     output_directory=None,
+    tts_provider="gtts",
+    bpm=120,
+    music_style="generated",
 ):
     # initialize new conversation and new assistant plus openai client
     if openai_client is None and assistant_obj is None and thread_obj is None:
@@ -200,8 +212,9 @@ def have_conversation(
         initial_user_prompt += current_user_name
     user_prompt = initial_user_prompt
 
-    while user_prompt not in ["break", "stop", "quit", "exit", "q"]:
+    # fmt: on
 
+    while user_prompt not in ["break", "stop", "quit", "exit", "q"]:
         # PROCESS USER INPUT:
         print("Processing...")
         assistant_response = talk_to_assistant(
@@ -225,16 +238,22 @@ def have_conversation(
             system_output = choose_output(assistant_response, style="print")
         else:
             # choose voice output on concecutive iterations
-            system_output = choose_output(assistant_response, style=output_processing, output_directory=output_directory)
+            system_output = choose_output(
+                assistant_response,
+                style=output_processing,
+                output_directory=output_directory,
+                tts_provider=tts_provider,
+                bpm=bpm,
+                music_style=music_style,
+            )
         # print(system_output)
         # print(f"\n{system_output}")
 
         # USER INPUT
         user_prompt = input("\n> ")
         conversation_iteration += 1
-    
+
     print(f"\nBye bye.\n")
-    # fmt: on
 
     # store and return for later processing
     assistant_id = assistant_obj.id
@@ -248,30 +267,67 @@ def have_conversation(
 
 
 # SELECT OUTPUT PROCESSING
-def choose_output(text, style=None, output_directory=None):
+def choose_output(
+    text,
+    style=None,
+    output_directory=None,
+    tts_provider="gtts",
+    bpm=120,
+    music_style="random",
+):
     if style == "print":
         print(text)
     elif style == "voice":
+        if tts_provider is None:
+            tts_provider = "gtts"
         if output_directory is None:
-            print("Warning: No output directory for gTTS specified.")
-        voice_output(text, output_directory, bpm=160)
+            print("Warning: No output directory for TTS specified.")
+
+        voice_output(
+            text,
+            output_directory,
+            bpm=bpm,
+            tts_provider=tts_provider,
+            music_style=music_style,
+        )
 
 
-def voice_output(text, output_directory, bpm=120):
+def voice_output(text, output_directory, bpm, tts_provider, music_style):
     # creating voice audio file
-    voice_file_path = speaking(text, output_directory)
+    if tts_provider == "gtts":
+        voice_file_path = gtts_tts(text, output_directory)
+    elif tts_provider == "openai":
+        voices = ["alloy", "echo", "fable", "onyx", "nova", "shimmer"]
+        voice = choice(voices)
+        print(f"OpenAI TTS Voice: {voice}")
+        voice_file_path = openai_tts(
+            text, os.path.join(output_directory, "oa_tts_output.mp3"), voice=voice
+        )
+
+    voice_length = get_audio_length(voice_file_path)
 
     # navigate to directories
     beats_dir = os.path.join(output_directory, "beats")
     adj_bpm_beats_dir = os.path.join(beats_dir, "adjusted_bpm")
 
-    # choosing random file from dir
-    random_music_file_path = choose_random_file(beats_dir)
+    # MUSIC SELECTION
+    if music_style == "random":
+        print("Choosing random music...")
+        # choosing random file from dir
+        music_file_path = choose_random_file(beats_dir)
+    else:
+        print("Generating music...")
+        music_file_path = generate_music(
+            song_length=voice_length,
+            bpm=bpm,
+            output_file=os.path.join(beats_dir, "gen_music.wav"),
+        )
+    print(f"Music file path: {music_file_path}")
 
     # bpm matching of the two files
     new_voice_path, new_music_path = bpm_match_two_files(
         file_path_one=voice_file_path,
-        file_path_two=random_music_file_path,
+        file_path_two=music_file_path,
         output_dir=adj_bpm_beats_dir,
         tempo=bpm,
     )
