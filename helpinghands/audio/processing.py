@@ -77,3 +77,9 @@ def bpm_match_two_files(file_path_one, file_path_two, output_dir, tempo=120):
     adj_two.export(adj_path_two, format="mp3")
 
     return adj_path_one, adj_path_two
+
+
+def get_audio_length(file_path):
+    audio = AudioSegment.from_file(file_path)
+    duration = len(audio) / 1000  # pydub calculates in millisec
+    return duration  # Duration in seconds
