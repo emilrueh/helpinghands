@@ -146,7 +146,7 @@ def mix_tracks(drum_track, melody_track):
 def generate_music(
     drum_patterns=None,  # List of drum patterns
     melody_sequences=None,  # List of melody sequences
-    song_length=10,
+    song_length=9,
     bpm=None,
     sample_rate=44100,
     output_file="gen_music.wav",
@@ -196,6 +196,8 @@ def generate_music(
 
     # Write to a WAV file
     write(output_file, sample_rate, final_mix)
+
+    return output_file
 
 
 # -----------------------
