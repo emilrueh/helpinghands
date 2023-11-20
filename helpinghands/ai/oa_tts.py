@@ -1,6 +1,8 @@
 from openai import OpenAI
 from dotenv import load_dotenv
 
+load_dotenv()
+
 client = OpenAI()
 
 
@@ -10,4 +12,4 @@ def openai_tts(input_text, output_path="./oa_tts.mp3", model="tts-1", voice="all
     """
     response = client.audio.speech.create(model=model, voice=voice, input=input_text)
     response.stream_to_file(output_path)
-    return
+    return output_path
