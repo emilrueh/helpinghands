@@ -148,6 +148,10 @@ def talk_to_assistant(
     return reply
 
 
+# CONVERSATION FUNCTIONS
+
+
+# start new conversation
 def init_conversation(
     role="You are a helpful assistant.",
     instructions="Your task is to do basic computer work.",
@@ -165,6 +169,120 @@ def init_conversation(
 
 # re-usable implementation
 def have_conversation(
+    openai_client=None,
+    assistant_obj=None,
+    thread_obj=None,
+    current_user_name=None,
+    initial_user_prompt="Hi, my name is {}",
+    assistant_role=None,
+    assistant_instructions=None,
+    run_instructions=None,  # what do I use those run instructions for?
+    conversation_id=None,
+    output_processing="print",
+    output_directory=None,
+):
+    # initialize new conversation and new assistant plus openai client
+    if openai_client is None and assistant_obj is None and thread_obj is None:
+        print("Initializing new conversation...")
+        openai_client, assistant_obj, thread_obj = init_conversation(
+            role=assistant_role, instructions=assistant_instructions
+        )
+
+    # error for later implementation of seperate setups
+    elif openai_client is None or assistant_obj is None or thread_obj is None:
+        print(
+            "Error: Sorry! The 'have_ conversation' function takes either all or none prerequisites.\nYou provided either one or two.\n\nExiting..."
+        )
+        quit()
+
+    # continue a previous conversation
+    elif conversation_id:
+        pass  # thread managment
+
+    # SETTINGS
+
+    # fmt: off
+    conversation_iteration = 0
+
+    # add username to initial greeting if nothing else provided
+    if current_user_name and initial_user_prompt and "{}" in initial_user_prompt:
+        initial_user_prompt = initial_user_prompt.format(current_user_name)
+    elif current_user_name and not initial_user_prompt:
+        initial_user_prompt += current_user_name
+    user_prompt = initial_user_prompt
+    # fmt: on
+
+    # CONVERSATION LOOP
+
+    while user_prompt not in ["break", "stop", "quit", "exit", "q"]:
+        #
+        # PROCESS USER INPUT:
+
+        print("Processing...")
+        assistant_response = talk_to_assistant(
+            openai_client,
+            assistant_obj,
+            thread_obj,
+            user_prompt=user_prompt,
+            run_instructions=run_instructions,
+        )
+
+        # SYSTEM OUTPUT
+
+        print("Choosing system output...")
+
+        system_output = choose_output(
+            assistant_response,
+            style=output_processing,
+            output_directory=output_directory,
+        )
+        # implement various outputs returned (or does it happen outside of the function?)
+        #   - I guess it needs to happen inside the function (as otherwise how to loop?)
+
+        # USER INPUT
+
+        user_prompt = input("\n> ")
+        conversation_iteration += 1
+
+    print(f"\nBye bye.\n")
+
+    # store and return for later processing
+    assistant_id = assistant_obj.id
+    thread_id = thread_obj.id
+
+    return assistant_id, thread_id
+
+
+# ---
+
+
+# SELECT OUTPUT PROCESSING
+def choose_output(
+    text,
+    style=None,
+    output_directory=None,
+):
+    if style == "print":
+        print(text)
+    elif style == "voice":
+        voice_output(text, output_directory)
+
+
+# ---
+
+
+"""
+so freestyle rap needs to be called from output processing, right?
+all freestyle functions need to be refactored into seperate file
+
+but where do I set the settings for the freestyler?
+    - if choose_output() calls freestyle_rap() 
+      then have_conversation() calls choose_output() 
+      so how to set bpm etc.?
+"""
+
+
+def freestyle_rap(  # is actually just have_conversation() so it needs complete refactoring to only call it
     openai_client=None,
     assistant_obj=None,
     thread_obj=None,
@@ -265,33 +383,7 @@ def have_conversation(
 # Work In Progress:
 # -----------------
 
-
-# SELECT OUTPUT PROCESSING
-def choose_output(
-    text,
-    style=None,
-    output_directory=None,
-    tts_provider="gtts",
-    bpm=120,
-    music_style="random",
-):
-    if style == "print":
-        print(text)
-    elif style == "voice":
-        if tts_provider is None:
-            tts_provider = "gtts"
-        if output_directory is None:
-            print("Warning: No output directory for TTS specified.")
-
-        voice_output(
-            text,
-            output_directory,
-            bpm=bpm,
-            tts_provider=tts_provider,
-            music_style=music_style,
-        )
-
-
+# needs refactoring of the music functionality into seperate function as this is a tts function
 def voice_output(text, output_directory, bpm, tts_provider, music_style):
     # creating voice audio file
     if tts_provider == "gtts":
@@ -334,5 +426,6 @@ def voice_output(text, output_directory, bpm, tts_provider, music_style):
 
     # playing voice
     play_sound(new_voice_path)
+
     # playing music (at lower volume)
     play_sound(new_music_path, volume=0.2)
