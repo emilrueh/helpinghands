@@ -230,12 +230,14 @@ def have_conversation(
         # SYSTEM OUTPUT
 
         print("Choosing system output...")
-
-        system_output = choose_output(
-            assistant_response,
-            style=output_processing,
-            output_directory=output_directory,
-        )
+        if conversation_iteration < 1:
+            print(assistant_response)
+        else:
+            system_output = choose_output(
+                assistant_response,
+                style=output_processing,
+                output_dir=output_directory,
+            )
         # implement various outputs returned (or does it happen outside of the function?)
         #   - I guess it needs to happen inside the function (as otherwise how to loop?)
 
@@ -260,12 +262,14 @@ def have_conversation(
 def choose_output(
     text,
     style=None,
-    output_directory=None,
+    output_dir=None,
 ):
     if style == "print":
         print(text)
     elif style == "voice":
-        voice_output(text, output_directory)
+        voice_and_music(
+            voice_output(text, output_dir, tts_provider="openai"), output_dir
+        )
 
 
 # ---
@@ -359,7 +363,7 @@ def freestyle_rap(  # is actually just have_conversation() so it needs complete 
             system_output = choose_output(
                 assistant_response,
                 style=output_processing,
-                output_directory=output_directory,
+                output_dir=output_directory,
                 tts_provider=tts_provider,
                 bpm=bpm,
                 music_style=music_style,
@@ -383,8 +387,9 @@ def freestyle_rap(  # is actually just have_conversation() so it needs complete 
 # Work In Progress:
 # -----------------
 
+
 # needs refactoring of the music functionality into seperate function as this is a tts function
-def voice_output(text, output_directory, bpm, tts_provider, music_style):
+def voice_output(text, output_directory, tts_provider="gtts"):
     # creating voice audio file
     if tts_provider == "gtts":
         voice_file_path = gtts_tts(text, output_directory)
@@ -395,8 +400,16 @@ def voice_output(text, output_directory, bpm, tts_provider, music_style):
         voice_file_path = openai_tts(
             text, os.path.join(output_directory, "oa_tts_output.mp3"), voice=voice
         )
+    return voice_file_path
 
-    voice_length = get_audio_length(voice_file_path)
+
+def voice_and_music(
+    voice_input_file_path,
+    output_directory,
+    music_style: str = "generated",
+    bpm: int = 120,
+):
+    voice_length = get_audio_length(voice_input_file_path)
 
     # navigate to directories
     beats_dir = os.path.join(output_directory, "beats")
@@ -418,7 +431,7 @@ def voice_output(text, output_directory, bpm, tts_provider, music_style):
 
     # bpm matching of the two files
     new_voice_path, new_music_path = bpm_match_two_files(
-        file_path_one=voice_file_path,
+        file_path_one=voice_input_file_path,
         file_path_two=music_file_path,
         output_dir=adj_bpm_beats_dir,
         tempo=bpm,
