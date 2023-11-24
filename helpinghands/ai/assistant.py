@@ -214,7 +214,7 @@ def have_conversation(
 
         system_output = choose_output(
             assistant_response,
-            output_style=output_processing if conversation_iteration > 1 else "print",  # first output only prints
+            output_style=output_processing if conversation_iteration > 0 else "print",  # first output only prints
             output_dir=output_directory,
         )
         # implement various outputs returned (or does it happen outside of the function?)
