@@ -23,7 +23,7 @@ def openai_tts(
     return output_file_path
 
 
-def gtts_tts(input_text, output_file_path="./gtts_output.mp3", lang="en"):
+def google_tts(input_text, output_file_path="./gtts_output.mp3", lang="en"):
     # processing
     tts = gTTS(input_text=input_text, lang=lang)
 
@@ -33,17 +33,27 @@ def gtts_tts(input_text, output_file_path="./gtts_output.mp3", lang="en"):
     return output_file_path
 
 
-def text_to_speech(text, output_directory, tts_provider=None, voice=None):
+# re-usable implementation
+def text_to_speech(text, output_directory, tts_provider=None, voice=None) -> str:
+    """
+    Returns: file path in .mp3 or .wav
+
+    Choose tts_provider: (or specify in .env key "TTS_PROVIDER")
+        1. gtts: basic google tts library
+        2. openai: advanced AI tts API endpoint
+    """
+
     output_dir_obj = pathlib.Path(output_directory)
 
-    # load tts_provder string from dotenv
+    # load tts_provider from dotenv if not given
     if tts_provider is None:
         load_dotenv()
         tts_provider = os.getenv("TTS_PROVIDER")
 
     # creating voice audio file
     if tts_provider == "gtts":
-        voice_file_path = gtts_tts(text, output_directory)
+        voice_file_path = google_tts(text, output_directory)
+
     elif tts_provider == "openai":
         # choose random voice if not given
         voices = ["alloy", "echo", "fable", "onyx", "nova", "shimmer"]
@@ -54,6 +64,7 @@ def text_to_speech(text, output_directory, tts_provider=None, voice=None):
         voice_file_path = openai_tts(
             text, output_dir_obj / "oa_tts_output.mp3", voice=voice
         )
+
     else:
         print("Unknown TTS provider specified. Returning...")
         return
