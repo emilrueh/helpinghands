@@ -12,7 +12,7 @@ from ..audio.processing import (
     gtts_tts,
     get_audio_length,
 )
-from ..ai.oa_tts import openai_tts
+from ..ai.tts import text_to_speech
 from ..audio.music import generate_music
 
 
@@ -236,7 +236,7 @@ def have_conversation(
 
         system_output = choose_output(
             assistant_response,
-            style=output_processing if conversation_iteration > 1 else "print",  # first output only prints
+            output_style=output_processing if conversation_iteration > 1 else "print",  # first output only prints
             output_dir=output_directory,
         )
         # implement various outputs returned (or does it happen outside of the function?)
@@ -264,13 +264,13 @@ def have_conversation(
 # SELECT OUTPUT PROCESSING
 def choose_output(
     text,
-    style=None,
+    output_style=None,
     output_dir=None,
 ):
-    if style == "print":
+    if output_style == "print":
         print(text)
-    elif style == "voice":
-        voice_and_music(voice_output(text, output_dir), output_dir)
+    elif output_style == "voice":
+        voice_and_music(text_to_speech(text, output_dir), output_dir)
 
 
 # ---
@@ -287,132 +287,8 @@ but where do I set the settings for the freestyler?
 """
 
 
-def freestyle_rap(  # is actually just have_conversation() so it needs complete refactoring to only call it
-    openai_client=None,
-    assistant_obj=None,
-    thread_obj=None,
-    current_user_name=None,
-    initial_user_prompt="Hi, my name is {}",
-    assistant_role=None,
-    assistant_instructions=None,
-    run_instructions=None,  # what do I use those run instructions for?
-    conversation_id=None,
-    output_processing="print",
-    output_directory=None,
-    tts_provider="gtts",
-    bpm=120,
-    music_style="generated",
-):
-    # initialize new conversation and new assistant plus openai client
-    if openai_client is None and assistant_obj is None and thread_obj is None:
-        print("Initializing new conversation...")
-        openai_client, assistant_obj, thread_obj = init_conversation(
-            role=assistant_role, instructions=assistant_instructions
-        )
-
-    # error for later implementation of seperate setups
-    elif openai_client is None or assistant_obj is None or thread_obj is None:
-        print(
-            "Error: Sorry! The 'have_ conversation' function takes either all or none prerequisites.\nYou provided either one or two.\n\nExiting..."
-        )
-        quit()
-
-    # continue a previous conversation
-    elif conversation_id:
-        pass  # thread managment
-
-    # settings
-
-    # fmt: off
-    # CONVERSATION LOOP
-    # talk to the assistant in the current thread
-    # add username to initial greeting if nothing else provided
-    conversation_iteration = 0
-
-    if current_user_name and initial_user_prompt and "{}" in initial_user_prompt:
-        initial_user_prompt = initial_user_prompt.format(current_user_name)
-    elif current_user_name and not initial_user_prompt:
-        initial_user_prompt += current_user_name
-    user_prompt = initial_user_prompt
-
-    # fmt: on
-
-    while user_prompt not in ["break", "stop", "quit", "exit", "q"]:
-        # PROCESS USER INPUT:
-        print("Processing...")
-        assistant_response = msg_create_send_receive(
-            openai_client,
-            assistant_obj,
-            thread_obj,
-            user_prompt=user_prompt,
-            run_instructions=run_instructions,
-        )
-
-        # cleaning response before processing
-        if "verse" in assistant_response.lower():
-            assistant_response = assistant_response.lower().replace("verse", "")
-        if "chorus" in assistant_response.lower():
-            assistant_response = assistant_response.lower().replace("chorus", "")
-
-        # SYSTEM OUTPUT
-        print("Choosing system output...")
-        if conversation_iteration < 1:
-            # choose simple print on first iteration
-            system_output = choose_output(assistant_response, style="print")
-        else:
-            # choose voice output on concecutive iterations
-            system_output = choose_output(
-                assistant_response,
-                style=output_processing,
-                output_dir=output_directory,
-                tts_provider=tts_provider,
-                bpm=bpm,
-                music_style=music_style,
-            )
-        # print(system_output)
-        # print(f"\n{system_output}")
-
-        # USER INPUT
-        user_prompt = input("\n> ")
-        conversation_iteration += 1
-
-    print(f"\nBye bye.\n")
-
-    # store and return for later processing
-    assistant_id = assistant_obj.id
-    thread_id = thread_obj.id
-
-    return assistant_id, thread_id
-
-
 # Work In Progress:
 # -----------------
-
-
-# needs refactoring of the music functionality into seperate function as this is a tts function
-def voice_output(text, output_directory, tts_provider=None):
-    output_dir_obj = pathlib.Path(output_directory)
-
-    # load tts_provder string from dotenv
-    if tts_provider is None:
-        load_dotenv()
-        tts_provider = os.getenv("TTS_PROVIDER")
-
-    # creating voice audio file
-    if tts_provider == "gtts":
-        voice_file_path = gtts_tts(text, output_directory)
-    elif tts_provider == "openai":
-        voices = ["alloy", "echo", "fable", "onyx", "nova", "shimmer"]
-        voice = choice(voices)
-        print(f"OpenAI TTS Voice: {voice}")
-        voice_file_path = openai_tts(
-            text, output_dir_obj / "oa_tts_output.mp3", voice=voice
-        )
-    else:
-        print("Unknown TTS provider specified. Returning...")
-        return
-
-    return voice_file_path
 
 
 def voice_and_music(
