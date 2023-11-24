@@ -234,7 +234,7 @@ def generate_music(
     return output_file
 
 
-# random pattern generation for above music generation functions
+# random pattern generation for above music generation functions:
 
 
 def create_drum_pattern(pattern_type):
@@ -315,7 +315,7 @@ def create_pattern(function):
         # For melody patterns, create one melody and one bass line
         for pattern_type in ["melody", "bass"]:
             while True:
-                pattern = create_melody_sequence(pattern_type)
+                pattern = function(pattern_type)
                 if validate_melody_sequence(pattern):
                     patterns.append(pattern)
                     break
@@ -326,23 +326,10 @@ def create_pattern(function):
     return patterns
 
 
-# WIP:
+# WIP: (needs refactoring)
 
 
-def voice_and_music(
-    voice_input_file_path,
-    output_dir,
-    music_style: str = "generated",
-    bpm: int = 120,
-):
-    voice_length = get_audio_length(voice_input_file_path)
-
-    output_dir_obj = pathlib.Path(output_dir)
-
-    # check and create dirs
-    adjusted_bpm_dir = output_dir_obj / "adjusted_bpm"
-    adjusted_bpm_dir.mkdir(parents=True, exist_ok=True)
-
+def choose_music_style(music_style, output_dir_obj, song_length, bpm):
     # MUSIC SELECTION
     if music_style == "random":
         print("Choosing random music...")
@@ -351,11 +338,31 @@ def voice_and_music(
     else:
         print("Generating music...")
         music_file_path = generate_music(
-            song_length=voice_length,
+            song_length=song_length,
             bpm=bpm,
             output_file=output_dir_obj / "gen_music.wav",
         )
+
     print(f"Music file path: {music_file_path}")
+
+    return music_file_path
+
+
+def voice_and_music(
+    voice_input_file_path,
+    output_dir,
+    music_style: str = "generated",
+    bpm: int = 120,
+):
+    # check and create dirs
+    output_dir_obj = pathlib.Path(output_dir)
+    adjusted_bpm_dir = output_dir_obj / "adjusted_bpm"
+    adjusted_bpm_dir.mkdir(parents=True, exist_ok=True)
+
+    voice_length = get_audio_length(voice_input_file_path)
+
+    # MUSIC SELECTION
+    music_file_path = choose_music_style(music_style, output_dir_obj, voice_length, bpm)
 
     # bpm matching of the two files
     new_voice_path, new_music_path = bpm_match_two_files(
