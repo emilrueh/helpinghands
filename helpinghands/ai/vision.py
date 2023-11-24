@@ -1,14 +1,13 @@
-from openai import OpenAI
-from dotenv import load_dotenv
 import os
 
 from ..ai.gpt import chat
 from ..ai.dalle import generate_image
 from ..utility.image import image_to_base64str
 
-load_dotenv()
+from .assistant import init_openai_client
 
-client = OpenAI()
+client = init_openai_client()
+
 
 # https://platform.openai.com/docs/guides/vision
 

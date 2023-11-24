@@ -10,12 +10,9 @@ class ContentPolicyViolationError(Exception):
     pass
 
 
-from openai import OpenAI
-from dotenv import load_dotenv
+from .assistant import init_openai_client
 
-load_dotenv()
-
-client = OpenAI()
+client = init_openai_client()
 
 
 # DALL-E 3

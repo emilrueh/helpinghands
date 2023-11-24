@@ -6,12 +6,9 @@ from ..utility.data import backup_df
 import time, os, pandas as pd
 import openai
 
-from openai import OpenAI
-from dotenv import load_dotenv
+from .assistant import init_openai_client
 
-load_dotenv()
-
-client = OpenAI()
+client = init_openai_client()
 
 
 # updated calling

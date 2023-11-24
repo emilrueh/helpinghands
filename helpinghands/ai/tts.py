@@ -1,14 +1,11 @@
-from openai import OpenAI
-from dotenv import load_dotenv
-
 from gtts import gTTS
+from dotenv import load_dotenv
 
 import os, pathlib, random
 
+from .assistant import init_openai_client
 
-load_dotenv()
-
-client = OpenAI()
+client = init_openai_client()
 
 
 def openai_tts(
