@@ -10,6 +10,24 @@ class ContentPolicyViolationError(Exception):
     pass
 
 
+from openai import OpenAI
+from dotenv import load_dotenv
+
+load_dotenv()
+
+client = OpenAI()
+
+
+# DALL-E 3
+def generate_image(prompt, size="1024x1024", amount=1, ai_model="dall-e-3"):
+    response = client.images.generate(
+        model=ai_model, prompt=prompt, size=size, quality="standard", n=amount
+    )
+    return response.data[0].url
+
+
+# deprecated
+# DALL-E 2
 def generate_image(
     api_key,
     prompt,
@@ -34,8 +52,13 @@ def generate_image(
     response_json = response.json()
 
     if response.status_code != 200 or "data" not in response_json:
-        if "error" in response_json and response_json["error"]["code"] == "content_policy_violation":
-            raise ContentPolicyViolationError(f"Content policy violation with prompt: {prompt}")
+        if (
+            "error" in response_json
+            and response_json["error"]["code"] == "content_policy_violation"
+        ):
+            raise ContentPolicyViolationError(
+                f"Content policy violation with prompt: {prompt}"
+            )
         else:
             logger.error(f"Request rejected: {response.text}")
         return ["No image generated"]
@@ -130,7 +153,9 @@ def dallee_loop(
         backup_file = None
         # Save DataFrame every 100 rows
         if output_file_directory is not None:
-            backup_file = os.path.join(output_file_directory, f"output_backup_{output_file_name}.csv")
+            backup_file = os.path.join(
+                output_file_directory, f"output_backup_{output_file_name}.csv"
+            )
             if i % 100 == 0:
                 backup_df(data, backup_file, i, output_file_name.upper(), original_type)
 
@@ -142,7 +167,9 @@ def dallee_loop(
 
     # Save the last batch which might contain less than 100 rows
     if backup_file and output_file_directory is not None:
-        backup_file_final = backup_file.rsplit(".", 1)[0] + "_Final." + backup_file.rsplit(".", 1)[1]
+        backup_file_final = (
+            backup_file.rsplit(".", 1)[0] + "_Final." + backup_file.rsplit(".", 1)[1]
+        )
         data_final.to_csv(backup_file_final, index=False)
         logger.info(f"Final file saved at path: {backup_file_final}")
 

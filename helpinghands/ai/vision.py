@@ -3,6 +3,7 @@ from dotenv import load_dotenv
 import os
 
 from ..ai.gpt import chat
+from ..ai.dallee import generate_image
 from ..utility.image import image_to_base64str
 
 load_dotenv()
@@ -10,17 +11,6 @@ load_dotenv()
 client = OpenAI()
 
 # https://platform.openai.com/docs/guides/vision
-
-
-# DALL-E 3
-def generate_image(prompt, size="1024x1024", amount=1, ai_model="dall-e-3"):
-    response = client.images.generate(
-        model=ai_model, prompt=prompt, size=size, quality="standard", n=amount
-    )
-    return response.data[0].url
-
-
-# ---
 
 
 def view_image(images_in_base64str: list, prompt, max_tokens=300):
