@@ -5,7 +5,7 @@ from time import sleep
 import os
 
 from ..ai.tts import text_to_speech
-from ..audio.music import voice_and_music
+from ..audio.music import mix_voice_and_music
 
 
 # setup
@@ -259,4 +259,4 @@ def choose_output(
     if output_style == "print":
         print(text)
     elif output_style == "voice":
-        voice_and_music(text_to_speech(text, output_dir), output_dir)
+        mix_voice_and_music(text_to_speech(text, output_dir), output_dir)

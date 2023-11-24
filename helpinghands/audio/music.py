@@ -330,7 +330,7 @@ def create_pattern(function):
 
 
 def choose_music_style(music_style, output_dir_obj, song_length, bpm):
-    # MUSIC SELECTION
+    # choose random track or generate music
     if music_style == "random":
         print("Choosing random music...")
         # choosing random file from dir
@@ -348,7 +348,7 @@ def choose_music_style(music_style, output_dir_obj, song_length, bpm):
     return music_file_path
 
 
-def voice_and_music(
+def mix_voice_and_music(
     voice_input_file_path,
     output_dir,
     music_style: str = "generated",
@@ -361,7 +361,7 @@ def voice_and_music(
 
     voice_length = get_audio_length(voice_input_file_path)
 
-    # MUSIC SELECTION
+    # music selection
     music_file_path = choose_music_style(music_style, output_dir_obj, voice_length, bpm)
 
     # bpm matching of the two files
@@ -374,6 +374,5 @@ def voice_and_music(
 
     # playing voice
     play_sound(new_voice_path)
-
     # playing music (at lower volume)
     play_sound(new_music_path, volume=0.2)
