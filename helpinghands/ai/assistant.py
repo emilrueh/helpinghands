@@ -1,8 +1,4 @@
-from openai import OpenAI
-from dotenv import load_dotenv
-
 from time import sleep
-import os
 
 from ..ai.tts import text_to_speech
 from ..audio.music import mix_voice_and_music
