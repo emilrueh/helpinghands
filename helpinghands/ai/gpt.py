@@ -6,7 +6,7 @@ from ..utility.data import backup_df
 import time, os, pandas as pd
 import openai
 
-from .assistant import init_openai_client
+from .setup import init_openai_client
 
 client = init_openai_client()
 

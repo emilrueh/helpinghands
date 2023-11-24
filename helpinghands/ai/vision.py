@@ -4,7 +4,7 @@ from ..ai.gpt import chat
 from ..ai.dalle import generate_image
 from ..utility.image import image_to_base64str
 
-from .assistant import init_openai_client
+from .setup import init_openai_client
 
 client = init_openai_client()
 
@@ -38,7 +38,7 @@ def view_image(images_in_base64str: list, prompt, max_tokens=300):
     return response.choices[0].message.content
 
 
-def image_generation_iteration(
+def image_description_iteration(
     image: str,
     iterations: int = 3,
     directory: str = None,

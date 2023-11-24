@@ -10,7 +10,7 @@ class ContentPolicyViolationError(Exception):
     pass
 
 
-from .assistant import init_openai_client
+from .setup import init_openai_client
 
 client = init_openai_client()
 
@@ -25,7 +25,7 @@ def generate_image(prompt, size="1024x1024", amount=1, ai_model="dall-e-3"):
 
 # deprecated
 # DALL-E 2
-def generate_image(
+def generate_image_deprecated(
     api_key,
     prompt,
     number=1,
@@ -84,7 +84,7 @@ def generate_image(
     return image_urls
 
 
-def dallee_loop(
+def dallee_loop_deprecated(
     api_key,
     data,
     columns_for_input,

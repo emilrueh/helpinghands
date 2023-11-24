@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 
 import os, pathlib, random
 
-from .assistant import init_openai_client
+from .setup import init_openai_client
 
 client = init_openai_client()
 
