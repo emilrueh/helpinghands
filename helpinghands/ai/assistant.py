@@ -7,20 +7,10 @@ import os
 from ..ai.tts import text_to_speech
 from ..audio.music import mix_voice_and_music
 
+from .setup import init_openai_client
+
 
 # setup
-def init_openai_client(raw_api_key=None, dotenv_key=None):
-    load_dotenv()
-
-    api_key = (
-        os.getenv(dotenv_key)
-        if dotenv_key and dotenv_key != "OPENAI_API_KEY"
-        else raw_api_key
-    )
-
-    return OpenAI(api_key=api_key)
-
-
 def create_assistant(
     instructions_prompt=None,
     role_or_name=None,
