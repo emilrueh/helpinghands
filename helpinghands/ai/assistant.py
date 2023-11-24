@@ -189,7 +189,7 @@ def have_conversation(
     # SETTINGS
 
     # fmt: off
-    conversation_iteration = 0
+    conv_iter = 0
 
     # add user name to conversation start if provided
     if current_user_name and initial_user_prompt:
@@ -215,9 +215,13 @@ def have_conversation(
 
         # SAVING CONVERSATION TO .TXT FILE
         print("Saving iteration to .txt file...")
-        
-        txt_output_file = output_dir_obj / "conversation.txt"
-        write_to_txt_file(f"User:\n{user_prompt}\n\nSystem:\n{assistant_response}", output_file_path=txt_output_file)
+
+        iter_fmt = f"Iteration: {conv_iter}"
+        user_fmt = f"User:\n{user_prompt}"
+        system_fmt = f"System:\n{assistant_response}"
+
+        conversation_fmt = f"{iter_fmt}\n\n{user_fmt}\n\n{system_fmt}\n\n\n"
+        write_to_txt_file(conversation_fmt, output_file_path=output_dir_obj / "conversation.txt")
 
         # SYSTEM OUTPUT
 
@@ -225,7 +229,7 @@ def have_conversation(
 
         system_output = choose_output(
             assistant_response,
-            output_style=output_processing if conversation_iteration > 0 else "print",  # first output only prints
+            output_style=output_processing if conv_iter > 0 else "print",  # first output only prints
             output_dir=output_dir_obj,
         )
         # implement various outputs returned (or does it happen outside of the function?)
@@ -234,7 +238,7 @@ def have_conversation(
         # USER INPUT
 
         user_prompt = input("\n> ")
-        conversation_iteration += 1
+        conv_iter += 1
 
     print(f"\nBye bye.\n")
 
