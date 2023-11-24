@@ -4,13 +4,13 @@ try:
     from .recorder import AudioRecorder  # ContinuousRecorder
     from .processing import (
         play_sound,
-        gtts_tts,
         get_tempo,
         match_tempo,
         bpm_match_two_files,
         get_audio_length,
     )
     from .music import generate_music
+
 except (ImportError, OSError) as e:
     import warnings
 
