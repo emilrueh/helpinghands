@@ -389,7 +389,12 @@ def freestyle_rap(  # is actually just have_conversation() so it needs complete 
 
 
 # needs refactoring of the music functionality into seperate function as this is a tts function
-def voice_output(text, output_directory, tts_provider="gtts"):
+def voice_output(text, output_directory, tts_provider=None):
+    # load tts_provder string from dotenv
+    if tts_provider is None:
+        load_dotenv()
+        tts_provider = os.getenv("TTS_PROVIDER")
+
     # creating voice audio file
     if tts_provider == "gtts":
         voice_file_path = gtts_tts(text, output_directory)
@@ -400,6 +405,10 @@ def voice_output(text, output_directory, tts_provider="gtts"):
         voice_file_path = openai_tts(
             text, os.path.join(output_directory, "oa_tts_output.mp3"), voice=voice
         )
+    else:
+        print("Unknown TTS provider specified. Returning...")
+        return
+
     return voice_file_path
 
 
