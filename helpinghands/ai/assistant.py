@@ -118,7 +118,7 @@ def list_messages(openai_client, thread_obj):
 
 
 # send message and get reply
-def talk_to_assistant(
+def msg_create_send_receive(
     openai_client,
     assistant_obj,
     thread_obj,
@@ -154,7 +154,7 @@ def talk_to_assistant(
 # start new conversation
 def init_conversation(
     role="You are a helpful assistant.",
-    instructions="Your task is to do basic computer work.",
+    instructions="Your task is to assist the user with their questions.",
 ):
     # setup openai assistant
     openai_client, assistant_obj = create_assistant(
@@ -173,7 +173,7 @@ def have_conversation(
     assistant_obj=None,
     thread_obj=None,
     current_user_name=None,
-    initial_user_prompt="Hi, my name is {}",
+    initial_user_prompt="Hello. Who are you?",
     assistant_role=None,
     assistant_instructions=None,
     run_instructions=None,  # what do I use those run instructions for?
@@ -181,6 +181,10 @@ def have_conversation(
     output_processing="print",
     output_directory=None,
 ):
+    # optional initial setup:
+    #   - either start new conversation
+    #   - or continue previous conversation
+
     # initialize new conversation and new assistant plus openai client
     if openai_client is None and assistant_obj is None and thread_obj is None:
         print("Initializing new conversation...")
@@ -188,7 +192,7 @@ def have_conversation(
             role=assistant_role, instructions=assistant_instructions
         )
 
-    # error for later implementation of seperate setups
+    # print error for later implementation of seperate setup of client, assistant, thread, and conversation
     elif openai_client is None or assistant_obj is None or thread_obj is None:
         print(
             "Error: Sorry! The 'have_ conversation' function takes either all or none prerequisites.\nYou provided either one or two.\n\nExiting..."
@@ -204,13 +208,11 @@ def have_conversation(
     # fmt: off
     conversation_iteration = 0
 
-    # add username to initial greeting if nothing else provided
-    if current_user_name and initial_user_prompt and "{}" in initial_user_prompt:
-        initial_user_prompt = initial_user_prompt.format(current_user_name)
-    elif current_user_name and not initial_user_prompt:
-        initial_user_prompt += current_user_name
-    user_prompt = initial_user_prompt
-    # fmt: on
+    # add user name to conversation start if provided
+    if current_user_name and initial_user_prompt:
+        user_prompt = initial_user_prompt + f"My name is {current_user_name}"
+    else:
+        user_prompt = initial_user_prompt
 
     # CONVERSATION LOOP
 
@@ -218,8 +220,9 @@ def have_conversation(
         #
         # PROCESS USER INPUT:
 
-        print("Processing...")
-        assistant_response = talk_to_assistant(
+        print("Creating and sending message...")
+
+        assistant_response = msg_create_send_receive(
             openai_client,
             assistant_obj,
             thread_obj,
@@ -230,14 +233,12 @@ def have_conversation(
         # SYSTEM OUTPUT
 
         print("Choosing system output...")
-        if conversation_iteration < 1:
-            print(assistant_response)
-        else:
-            system_output = choose_output(
-                assistant_response,
-                style=output_processing,
-                output_dir=output_directory,
-            )
+
+        system_output = choose_output(
+            assistant_response,
+            style=output_processing if conversation_iteration > 1 else "print",  # first output only prints
+            output_dir=output_directory,
+        )
         # implement various outputs returned (or does it happen outside of the function?)
         #   - I guess it needs to happen inside the function (as otherwise how to loop?)
 
@@ -254,6 +255,8 @@ def have_conversation(
 
     return assistant_id, thread_id
 
+
+# fmt: on
 
 # ---
 
@@ -337,7 +340,7 @@ def freestyle_rap(  # is actually just have_conversation() so it needs complete 
     while user_prompt not in ["break", "stop", "quit", "exit", "q"]:
         # PROCESS USER INPUT:
         print("Processing...")
-        assistant_response = talk_to_assistant(
+        assistant_response = msg_create_send_receive(
             openai_client,
             assistant_obj,
             thread_obj,
@@ -414,13 +417,13 @@ def voice_output(text, output_directory, tts_provider=None):
 
 def voice_and_music(
     voice_input_file_path,
-    output_directory,
+    output_dir,
     music_style: str = "generated",
     bpm: int = 120,
 ):
     voice_length = get_audio_length(voice_input_file_path)
 
-    output_dir_obj = pathlib.Path(output_directory)
+    output_dir_obj = pathlib.Path(output_dir)
 
     # check and create dirs
     adjusted_bpm_dir = output_dir_obj / "adjusted_bpm"
