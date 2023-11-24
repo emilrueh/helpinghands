@@ -1,6 +1,57 @@
 import numpy as np
 from scipy.io.wavfile import write
-import random
+
+import random, pathlib
+
+from ..utility.data import choose_random_file
+from ..audio.processing import (
+    bpm_match_two_files,
+    play_sound,
+    get_audio_length,
+)
+
+
+def synth_kick(time, sample_rate):
+    # Enhanced kick drum sound synthesis
+    start_frequency = 250  # Starting frequency for pitch drop
+    end_frequency = 70  # End frequency after drop
+    pitch_drop_duration = 0.05  # Duration of pitch drop
+    pitch_drop_t = np.linspace(
+        0, pitch_drop_duration, int(sample_rate * pitch_drop_duration), False
+    )
+    stable_time = time[len(pitch_drop_t) :]
+
+    # Create a pitch drop effect
+    frequency = np.linspace(start_frequency, end_frequency, len(pitch_drop_t))
+    frequency = np.concatenate([frequency, np.full_like(stable_time, end_frequency)])
+
+    envelope = np.e ** (-4 * time)  # Adjusted decay
+    waveform = np.sin(2 * np.pi * frequency * time) * envelope
+
+    return waveform
+
+
+def synth_snare(time, sample_rate):
+    # Basic snare drum sound synthesis
+    noise = np.random.normal(0, 1, len(time))  # White noise
+    envelope = np.e ** (-10 * time)  # Faster decay than kick
+    waveform = noise * envelope
+
+    return waveform
+
+
+def synth_highhat(time, style):
+    noise = np.random.normal(0, 1, len(time))  # White noise for high-hat
+
+    if style == "open":
+        decay = -40  # long decay
+    elif style == "closed":
+        decay = -5  # short decay
+
+    envelope = np.e ** (decay * time)
+    waveform = noise * envelope
+
+    return waveform
 
 
 def synthesize_drum(sound_type, duration, sample_rate=44100):
@@ -11,40 +62,23 @@ def synthesize_drum(sound_type, duration, sample_rate=44100):
     :param sample_rate: Sample rate.
     :return: NumPy array of the synthesized drum sound.
     """
-    t = np.linspace(0, duration, int(sample_rate * duration), False)
+    time = np.linspace(0, duration, int(sample_rate * duration), False)
+
     if sound_type == "kick":
-        # Enhanced kick drum sound synthesis
-        start_frequency = 250  # Starting frequency for pitch drop
-        end_frequency = 70  # End frequency after drop
-        pitch_drop_duration = 0.05  # Duration of pitch drop
-        pitch_drop_t = np.linspace(
-            0, pitch_drop_duration, int(sample_rate * pitch_drop_duration), False
-        )
-        stable_t = t[len(pitch_drop_t) :]
-
-        # Create a pitch drop effect
-        frequency = np.linspace(start_frequency, end_frequency, len(pitch_drop_t))
-        frequency = np.concatenate([frequency, np.full_like(stable_t, end_frequency)])
-
-        envelope = np.e ** (-4 * t)  # Adjusted decay
-        waveform = np.sin(2 * np.pi * frequency * t) * envelope
+        waveform = synth_kick(time, sample_rate)
 
     elif sound_type == "snare":
-        # Basic snare drum sound synthesis
-        noise = np.random.normal(0, 1, len(t))  # White noise
-        envelope = np.e ** (-10 * t)  # Faster decay than kick
-        waveform = noise * envelope
+        waveform = synth_snare(time, sample_rate)
+
     elif sound_type in ["closed_hat", "open_hat"]:
-        # High-hat sound synthesis
-        noise = np.random.normal(0, 1, len(t))  # White noise for high-hat
         if sound_type == "closed_hat":
-            envelope = np.e ** (-40 * t)  # Very fast decay for closed high-hat
-        else:  # "open_hat"
-            envelope = np.e ** (-5 * t)  # Slower decay for open high-hat
-        waveform = noise * envelope
+            waveform = synth_highhat(time, "closed")
+        elif sound_type == "open_hat":
+            waveform = synth_highhat(time, "open")
+
     # ... add other drum types if needed
     else:
-        waveform = np.zeros_like(t)  # Silent if type not recognized
+        waveform = np.zeros_like(time)  # Silent if type not recognized
 
     return waveform
 
@@ -59,8 +93,8 @@ def synthesize_melody(notes, duration, sample_rate=44100):
     """
     melody = np.array([])
     for note in notes:
-        t = np.linspace(0, duration, int(sample_rate * duration), False)
-        waveform = np.sin(note * 2 * np.pi * t)
+        time = np.linspace(0, duration, int(sample_rate * duration), False)
+        waveform = np.sin(note * 2 * np.pi * time)
         melody = np.concatenate((melody, waveform))
 
     return melody
@@ -200,9 +234,7 @@ def generate_music(
     return output_file
 
 
-# -----------------------
-# random music generation:
-# -----------------------
+# random pattern generation for above music generation functions
 
 
 def create_drum_pattern(pattern_type):
@@ -292,3 +324,49 @@ def create_pattern(function):
         raise ValueError("Unknown pattern creation function")
 
     return patterns
+
+
+# WIP:
+
+
+def voice_and_music(
+    voice_input_file_path,
+    output_dir,
+    music_style: str = "generated",
+    bpm: int = 120,
+):
+    voice_length = get_audio_length(voice_input_file_path)
+
+    output_dir_obj = pathlib.Path(output_dir)
+
+    # check and create dirs
+    adjusted_bpm_dir = output_dir_obj / "adjusted_bpm"
+    adjusted_bpm_dir.mkdir(parents=True, exist_ok=True)
+
+    # MUSIC SELECTION
+    if music_style == "random":
+        print("Choosing random music...")
+        # choosing random file from dir
+        music_file_path = choose_random_file(output_dir_obj)
+    else:
+        print("Generating music...")
+        music_file_path = generate_music(
+            song_length=voice_length,
+            bpm=bpm,
+            output_file=output_dir_obj / "gen_music.wav",
+        )
+    print(f"Music file path: {music_file_path}")
+
+    # bpm matching of the two files
+    new_voice_path, new_music_path = bpm_match_two_files(
+        file_path_one=voice_input_file_path,
+        file_path_two=music_file_path,
+        output_dir=adjusted_bpm_dir,
+        tempo=bpm,
+    )
+
+    # playing voice
+    play_sound(new_voice_path)
+
+    # playing music (at lower volume)
+    play_sound(new_music_path, volume=0.2)
