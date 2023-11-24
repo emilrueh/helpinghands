@@ -23,12 +23,6 @@ from .data import (
     write_to_txt_file,
     load_text_from_file,
     open_txt_file,
-    get_image_res,
-    get_image,
-    image_to_bytes,
-    bytes_to_base64,
-    get_file_size,
-    compress_image,
     add_random_files,
     clean_directory,
     choose_random_file,
@@ -45,6 +39,16 @@ from .helper import (
     get_variable_name,
     ensure_windows_os,
     log_memory_usage,
+)
+from .image import (
+    convert_byte_sizes,
+    get_image_res,
+    get_image,
+    image_to_bytes,
+    bytes_to_base64,
+    image_to_base64str,
+    get_file_size,
+    compress_image,
 )
 
 try:
