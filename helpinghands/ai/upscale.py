@@ -1,6 +1,7 @@
 from ..utility.logger import get_logger
 from ..utility.helper import log_exception
-from ..utility.data import backup_df, get_image, get_image_res
+from ..utility.data import backup_df
+from ..utility.image import get_image, get_image_res
 from ..utility.decorator import time_execution
 
 from super_image import ImageLoader
@@ -24,7 +25,9 @@ def load_model(model_name: str, scale: int = 2):
     elif model_name == "edsr-base":
         return EdsrModel.from_pretrained(model_path, scale=scale)
     else:
-        raise ValueError(f"Model {model_name} not found. Please select another model_name.")
+        raise ValueError(
+            f"Model {model_name} not found. Please select another model_name."
+        )
 
 
 def super_image(
@@ -83,7 +86,9 @@ def super_image(
         )
         ImageLoader.save_image(preds, full_file_path)
         if save_comparison:
-            ImageLoader.save_compare(inputs, preds, full_file_path.replace("x", "x_compare"))
+            ImageLoader.save_compare(
+                inputs, preds, full_file_path.replace("x", "x_compare")
+            )
 
         return full_file_path
 
@@ -117,7 +122,9 @@ def super_image_loop(
 ):
     logger = get_logger()
     model = load_model(model_name, scale)
-    backup_file = os.path.join(output_files_dir, f"output_backup_{output_img_name.upper()}.csv")
+    backup_file = os.path.join(
+        output_files_dir, f"output_backup_{output_img_name.upper()}.csv"
+    )
     original_type = type(data)
 
     for i, row in data.iterrows():
