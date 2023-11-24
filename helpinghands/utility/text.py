@@ -4,14 +4,6 @@ import os, subprocess, textwrap, platform
 
 
 # TXT
-def split_path(file_path):
-    directory = os.path.dirname(file_path)
-    split_name = os.path.splitext(os.path.basename(file_path))
-    filename_without_extension = split_name[0]
-    extension = split_name[1]
-    return directory, filename_without_extension, extension
-
-
 def insert_newlines(string, every=64):
     logger = get_logger()
     logger.info(f"Formatted string.")
