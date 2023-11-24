@@ -1,7 +1,9 @@
 from time import sleep
+import pathlib
 
 from ..ai.tts import text_to_speech
 from ..audio.music import mix_voice_and_music
+from ..utility.text import write_to_txt_file
 
 from .setup import init_openai_client
 
@@ -157,8 +159,11 @@ def have_conversation(
     run_instructions=None,  # what do I use those run instructions for?
     conversation_id=None,
     output_processing="print",
-    output_directory=None,
+    output_dir=None,
 ):
+    if output_dir is not None:
+        output_dir_obj = pathlib.Path(output_dir)
+
     # optional initial setup:
     #   - either start new conversation
     #   - or continue previous conversation
@@ -208,6 +213,12 @@ def have_conversation(
             run_instructions=run_instructions,
         )
 
+        # SAVING CONVERSATION TO .TXT FILE
+        print("Saving iteration to .txt file...")
+        
+        txt_output_file = output_dir_obj / "conversation.txt"
+        write_to_txt_file(f"User:\n{user_prompt}\n\nSystem:\n{assistant_response}", output_file_path=txt_output_file)
+
         # SYSTEM OUTPUT
 
         print("Choosing system output...")
@@ -215,7 +226,7 @@ def have_conversation(
         system_output = choose_output(
             assistant_response,
             output_style=output_processing if conversation_iteration > 0 else "print",  # first output only prints
-            output_dir=output_directory,
+            output_dir=output_dir_obj,
         )
         # implement various outputs returned (or does it happen outside of the function?)
         #   - I guess it needs to happen inside the function (as otherwise how to loop?)
