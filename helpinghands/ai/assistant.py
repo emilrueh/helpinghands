@@ -1,19 +1,11 @@
 from openai import OpenAI
 from dotenv import load_dotenv
 
-from random import choice
 from time import sleep
-import os, pathlib
+import os
 
-from ..utility.data import choose_random_file
-from ..audio.processing import (
-    bpm_match_two_files,
-    play_sound,
-    gtts_tts,
-    get_audio_length,
-)
 from ..ai.tts import text_to_speech
-from ..audio.music import generate_music
+from ..audio.music import voice_and_music
 
 
 # setup
@@ -249,16 +241,13 @@ def have_conversation(
 
     print(f"\nBye bye.\n")
 
+    # fmt: on
+
     # store and return for later processing
     assistant_id = assistant_obj.id
     thread_id = thread_obj.id
 
     return assistant_id, thread_id
-
-
-# fmt: on
-
-# ---
 
 
 # SELECT OUTPUT PROCESSING
@@ -271,64 +260,3 @@ def choose_output(
         print(text)
     elif output_style == "voice":
         voice_and_music(text_to_speech(text, output_dir), output_dir)
-
-
-# ---
-
-
-"""
-so freestyle rap needs to be called from output processing, right?
-all freestyle functions need to be refactored into seperate file
-
-but where do I set the settings for the freestyler?
-    - if choose_output() calls freestyle_rap() 
-      then have_conversation() calls choose_output() 
-      so how to set bpm etc.?
-"""
-
-
-# Work In Progress:
-# -----------------
-
-
-def voice_and_music(
-    voice_input_file_path,
-    output_dir,
-    music_style: str = "generated",
-    bpm: int = 120,
-):
-    voice_length = get_audio_length(voice_input_file_path)
-
-    output_dir_obj = pathlib.Path(output_dir)
-
-    # check and create dirs
-    adjusted_bpm_dir = output_dir_obj / "adjusted_bpm"
-    adjusted_bpm_dir.mkdir(parents=True, exist_ok=True)
-
-    # MUSIC SELECTION
-    if music_style == "random":
-        print("Choosing random music...")
-        # choosing random file from dir
-        music_file_path = choose_random_file(output_dir_obj)
-    else:
-        print("Generating music...")
-        music_file_path = generate_music(
-            song_length=voice_length,
-            bpm=bpm,
-            output_file=output_dir_obj / "gen_music.wav",
-        )
-    print(f"Music file path: {music_file_path}")
-
-    # bpm matching of the two files
-    new_voice_path, new_music_path = bpm_match_two_files(
-        file_path_one=voice_input_file_path,
-        file_path_two=music_file_path,
-        output_dir=adjusted_bpm_dir,
-        tempo=bpm,
-    )
-
-    # playing voice
-    play_sound(new_voice_path)
-
-    # playing music (at lower volume)
-    play_sound(new_music_path, volume=0.2)
