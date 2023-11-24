@@ -11,12 +11,12 @@ def insert_newlines(string, every=64):
 
 
 def write_to_txt_file(
-    input_text, file_name, output_directory, mode="append", encoding="utf-8"
+    input_text, output_file_path="./output.txt", mode="append", encoding="utf-8"
 ):
     """
     Specify any mode except for 'append' for write and replace.
     """
-    output_file_path = os.path.join(output_directory, f"{file_name}.txt")
+
     with open(
         output_file_path, "a" if mode == "append" else "w", encoding=encoding
     ) as f:
