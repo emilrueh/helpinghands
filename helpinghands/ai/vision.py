@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 import os
 
 from ..ai.gpt import chat
-from ..ai.dallee import generate_image
+from ..ai.dalle import generate_image
 from ..utility.image import image_to_base64str
 
 load_dotenv()

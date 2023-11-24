@@ -1,6 +1,6 @@
 from .whisper import call_whisper
 from .gpt import call_gpt, gpt_loop
-from .dallee import generate_image, dallee_loop
+from .dalle import generate_image, dallee_loop
 from .assistant import have_conversation, text_to_speech
 from .tts import text_to_speech
 
