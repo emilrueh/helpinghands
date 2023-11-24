@@ -148,3 +148,19 @@ def create_df(data):
 def df_from_csv(filename):
     df = pd.read_csv(filename)
     return df
+
+
+def backup_df(data, path, i, prefix, original_type):
+    logger = get_logger()
+    backup_file_temp = (
+        path.rsplit(".", 1)[0] + f"_{prefix}_{i//100}." + path.rsplit(".", 1)[1]
+    )
+
+    data_temp = (
+        pd.DataFrame.from_records(data[: i + 1])
+        if original_type is pd.DataFrame
+        else pd.DataFrame(data[: i + 1])
+    )
+
+    data_temp.to_csv(backup_file_temp, index=False)
+    logger.info(f"File saved at path: {backup_file_temp} until row {i}")
