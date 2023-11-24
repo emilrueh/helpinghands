@@ -1,4 +1,3 @@
-from gtts import gTTS  # text to speech
 import librosa  # get tempo
 from pydub import AudioSegment  # altering
 import pygame  # playing
@@ -21,16 +20,6 @@ def play_sound(file_path, volume=1.0, wait_to_finish=False):
     if wait_to_finish:
         while pygame.mixer.get_busy():
             pygame.time.Clock().tick(10)
-
-
-def gtts_tts(text, output_directory, output_file_name="gtts_output.mp3", lang="en"):
-    output_file_path = os.path.join(output_directory, output_file_name)
-
-    # text to speech
-    tts = gTTS(text=text, lang=lang)
-
-    tts.save(output_file_path)
-    return output_file_path
 
 
 # tempo matching of voice and beat
