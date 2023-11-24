@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 
 from random import choice
 from time import sleep
-import os
+import os, pathlib
 
 from ..utility.data import choose_random_file
 from ..audio.processing import (
@@ -267,9 +267,7 @@ def choose_output(
     if style == "print":
         print(text)
     elif style == "voice":
-        voice_and_music(
-            voice_output(text, output_dir, tts_provider="openai"), output_dir
-        )
+        voice_and_music(voice_output(text, output_dir), output_dir)
 
 
 # ---
@@ -420,21 +418,23 @@ def voice_and_music(
 ):
     voice_length = get_audio_length(voice_input_file_path)
 
-    # navigate to directories
-    beats_dir = os.path.join(output_directory, "beats")
-    adj_bpm_beats_dir = os.path.join(beats_dir, "adjusted_bpm")
+    output_dir = pathlib.Path(output_directory)
+
+    # check and create dirs
+    adjusted_bpm_dir = output_dir / "adjusted_bpm"
+    adjusted_bpm_dir.mkdir(parents=True, exist_ok=True)
 
     # MUSIC SELECTION
     if music_style == "random":
         print("Choosing random music...")
         # choosing random file from dir
-        music_file_path = choose_random_file(beats_dir)
+        music_file_path = choose_random_file(output_dir)
     else:
         print("Generating music...")
         music_file_path = generate_music(
             song_length=voice_length,
             bpm=bpm,
-            output_file=os.path.join(beats_dir, "gen_music.wav"),
+            output_file=os.path.join(output_dir, "gen_music.wav"),
         )
     print(f"Music file path: {music_file_path}")
 
@@ -442,7 +442,7 @@ def voice_and_music(
     new_voice_path, new_music_path = bpm_match_two_files(
         file_path_one=voice_input_file_path,
         file_path_two=music_file_path,
-        output_dir=adj_bpm_beats_dir,
+        output_dir=adjusted_bpm_dir,
         tempo=bpm,
     )
 
