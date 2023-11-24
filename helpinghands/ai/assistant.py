@@ -388,6 +388,8 @@ def freestyle_rap(  # is actually just have_conversation() so it needs complete 
 
 # needs refactoring of the music functionality into seperate function as this is a tts function
 def voice_output(text, output_directory, tts_provider=None):
+    output_dir_obj = pathlib.Path(output_directory)
+
     # load tts_provder string from dotenv
     if tts_provider is None:
         load_dotenv()
@@ -401,7 +403,7 @@ def voice_output(text, output_directory, tts_provider=None):
         voice = choice(voices)
         print(f"OpenAI TTS Voice: {voice}")
         voice_file_path = openai_tts(
-            text, os.path.join(output_directory, "oa_tts_output.mp3"), voice=voice
+            text, output_dir_obj / "oa_tts_output.mp3", voice=voice
         )
     else:
         print("Unknown TTS provider specified. Returning...")
@@ -418,23 +420,23 @@ def voice_and_music(
 ):
     voice_length = get_audio_length(voice_input_file_path)
 
-    output_dir = pathlib.Path(output_directory)
+    output_dir_obj = pathlib.Path(output_directory)
 
     # check and create dirs
-    adjusted_bpm_dir = output_dir / "adjusted_bpm"
+    adjusted_bpm_dir = output_dir_obj / "adjusted_bpm"
     adjusted_bpm_dir.mkdir(parents=True, exist_ok=True)
 
     # MUSIC SELECTION
     if music_style == "random":
         print("Choosing random music...")
         # choosing random file from dir
-        music_file_path = choose_random_file(output_dir)
+        music_file_path = choose_random_file(output_dir_obj)
     else:
         print("Generating music...")
         music_file_path = generate_music(
             song_length=voice_length,
             bpm=bpm,
-            output_file=os.path.join(output_dir, "gen_music.wav"),
+            output_file=output_dir_obj / "gen_music.wav",
         )
     print(f"Music file path: {music_file_path}")
 
