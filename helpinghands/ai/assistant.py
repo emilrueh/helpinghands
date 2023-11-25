@@ -202,7 +202,6 @@ def have_conversation(
     while user_prompt not in ["break", "stop", "quit", "exit", "q"]:
         #
         # PROCESS USER INPUT:
-
         print("Creating and sending message...")
 
         assistant_response = msg_create_send_receive(
@@ -215,16 +214,16 @@ def have_conversation(
 
         # SAVING CONVERSATION TO .TXT FILE
         print("Saving iteration to .txt file...")
-
+        
+        # formatting of user and system reponses
         iter_fmt = f"Iteration: {conv_iter}"
         user_fmt = f"User:\n{user_prompt}"
         system_fmt = f"System:\n{assistant_response}"
-
         conversation_fmt = f"{iter_fmt}\n\n{user_fmt}\n\n{system_fmt}\n\n\n"
+
         write_to_txt_file(conversation_fmt, output_file_path=output_dir_obj / "conversation.txt")
 
         # SYSTEM OUTPUT
-
         print("Choosing system output...")
 
         system_output = choose_output(
