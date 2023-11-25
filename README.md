@@ -2,15 +2,18 @@
 
 The HelpingHands library provides various modules for different AI integration related "every-day" functionalities using Python.
 
+
 <div align="center">
     <img src="https://github.com/emilrueh/helpinghands/blob/dev/helpinghands_logo_v1.png" alt="HelpingHands Library Logo - A modern cyberpunk style logo featuring stylized hands and digital elements representing software development" width="420">
 </div>
+
+---
 
 ## Modules
 
 > This modules section will give a grand overview over all submodules and the functions meant to be called from projects using this library.
 
-### AI
+### 🤖 AI
 #### whisper.py
 - `call_whisper()`: Calls the Whisper endpoint for audio transcription.
 
@@ -33,13 +36,13 @@ The HelpingHands library provides various modules for different AI integration r
 - `view_image()`: Views an image.
 - `image_description_iteration()`: Iteratively describes images.
 
-#### upscale.py (conditional)
+#### upscale.py
 - `super_image()`: Upscales images using AI.
 - `super_image_loop()`: Continuously upscales images.
 
 ---
 
-### AUDIO
+### 🎶 AUDIO
 #### sounds.py
 - `uhoh()`: Plays "uh-oh" sound.
 - `criterr()`: Plays critical error sound.
@@ -65,7 +68,7 @@ The HelpingHands library provides various modules for different AI integration r
 
 ---
 
-### DATA
+### 💾 DATA
 #### various.py
 - `get_data_dir()`: Retrieves the data directory.
 - `add_random_files()`: Adds random files to a directory.
@@ -98,7 +101,7 @@ The HelpingHands library provides various modules for different AI integration r
 
 ---
 
-### UTILITY
+### 🧰 UTILITY
 #### settings.py
 - `load_settings()`: Loads settings from specified paths.
 
@@ -122,7 +125,7 @@ The HelpingHands library provides various modules for different AI integration r
 - `ensure_windows_os()`: Ensures the OS is Windows.
 - `log_memory_usage()`: Logs memory usage.
 
-#### web.py (conditional)
+#### web.py
 - `WebConfig()`: Class for configuring web settings.
 - `open_website()`: Opens a specified website.
 - `setup_browser()`: Sets up the browser.
