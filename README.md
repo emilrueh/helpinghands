@@ -18,69 +18,68 @@ The HelpingHands library provides various modules for different AI integration r
 - [License](#license)
 - [Author](#author)
 
----
 
-## Modules
+# Modules
 
 > This modules section will give a grand overview over all submodules and the functions meant to be called from projects using this library.
 
-### 🤖 AI
-#### whisper.py
+## 🤖 AI
+### whisper.py
 - `call_whisper()`: Calls the Whisper endpoint for audio transcription.
 
-#### gpt.py
+### gpt.py
 - `chat()`: Interacts with the GPT endpoint for text-based conversations.
 
-#### dalle.py
+### dalle.py
 - `generate_image()`: Generates images using the DALLE model.
 
-#### assistant.py
+### assistant.py
 - `have_conversation()`: Facilitates an AI-powered conversation.
 
-#### tts.py
+### tts.py
 - `text_to_speech()`: Converts text to speech.
 
-#### setup.py
+### setup.py
 - `init_openai_client()`: Initializes the OpenAI client.
 
-#### vision.py
+### vision.py
 - `view_image()`: Views an image.
 - `image_description_iteration()`: Iteratively describes images.
 
-#### upscale.py
+### upscale.py
 - `super_image()`: Upscales images using AI.
 - `super_image_loop()`: Continuously upscales images.
 
 ---
 
-### 🎶 AUDIO
-#### sounds.py
+## 🎶 AUDIO
+### sounds.py
 - `uhoh()`: Plays "uh-oh" sound.
 - `criterr()`: Plays critical error sound.
 - `warning()`: Plays warning sound.
 - `success()`: Plays success sound.
 
-#### converter.py
+### converter.py
 - `convert_audio()`: Converts audio files between different formats.
 - `combine_audio_files()`: Combines multiple audio files into one.
 
-#### recorder.py
+### recorder.py
 - `AudioRecorder()`: Class for recording audio.
 
-#### processing.py
+### processing.py
 - `play_sound()`: Plays a sound file.
 - `get_tempo()`: Gets the tempo (BPM) of an audio file.
 - `match_tempo()`: Matches the tempo of an audio file to a given BPM.
 - `bpm_match_two_files()`: Matches the tempo between two audio files.
 - `get_audio_length()`: Retrieves the length of an audio file.
 
-#### music.py
+### music.py
 - `generate_music()`: Generates music based on specified parameters.
 
 ---
 
-### 💾 DATA
-#### various.py
+## 💾 DATA
+### various.py
 - `get_data_dir()`: Retrieves the data directory.
 - `add_random_files()`: Adds random files to a directory.
 - `choose_random_file()`: Chooses a random file from a directory.
@@ -94,13 +93,13 @@ The HelpingHands library provides various modules for different AI integration r
 - `df_from_csv()`: Creates a DataFrame from a CSV file.
 - `backup_df()`: Backs up a DataFrame.
 
-#### text.py
+### text.py
 - `insert_newlines()`: Inserts new lines into text.
 - `write_to_txt_file()`: Writes text to a TXT file.
 - `load_text_from_file()`: Loads text from a file.
 - `open_txt_file()`: Opens a TXT file.
 
-#### image.py
+### image.py
 - `convert_byte_sizes()`: Converts byte sizes.
 - `get_image_res()`: Gets the resolution of an image.
 - `get_image()`: Retrieves an image.
@@ -112,23 +111,23 @@ The HelpingHands library provides various modules for different AI integration r
 
 ---
 
-### 🧰 UTILITY
-#### settings.py
+## 🧰 UTILITY
+### settings.py
 - `load_settings()`: Loads settings from specified paths.
 
-#### logger.py
+### logger.py
 - `config_logger()`: Configures the logger.
 - `LOGGER_NAME`: A constant defining the logger name.
 
-#### tokenbucket.py
+### tokenbucket.py
 - `TokenBucket()`: Implements a token bucket algorithm.
 - `api_rate_limit_wait()`: Waits based on the token bucket for API rate limiting.
 
-#### decorator.py
+### decorator.py
 - `retry()`: A decorator for retrying functions.
 - `time_execution()`: Times the execution of a function.
 
-#### helper.py
+### helper.py
 - `log_exception()`: Logs exceptions.
 - `get_git_tree()`: Retrieves the Git tree of a repository.
 - `colorize()`: Adds color to text.
@@ -136,7 +135,7 @@ The HelpingHands library provides various modules for different AI integration r
 - `ensure_windows_os()`: Ensures the OS is Windows.
 - `log_memory_usage()`: Logs memory usage.
 
-#### web.py
+### web.py
 - `WebConfig()`: Class for configuring web settings.
 - `open_website()`: Opens a specified website.
 - `setup_browser()`: Sets up the browser.
@@ -154,7 +153,7 @@ The HelpingHands library provides various modules for different AI integration r
 
 ---
 
-## Installation
+# Installation
 
 To install the HelpingHands library, you will need to clone this repo and install it in editable mode with pip:
 
@@ -162,7 +161,7 @@ To install the HelpingHands library, you will need to clone this repo and instal
 
 `pip install -e path/to/lib/directory`
 
-## Usage
+# Usage
 
 Here's an example of how the library might be used with an example definition of a function for audio transcription using the OpenAI's whisper model:
 
@@ -211,8 +210,8 @@ transcript = transcribe_audio(openai_api_key, mp3_file)
 logger.info(f"Transcript:\n{transcript}")
 ```
 
-## License
+# License
 This project serves as a demonstration of and it is not intended for cloning or external contributions. We kindly ask that you respect this intention by not using it for commercial purposes or distributing it. This work is licensed under the [Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International License](https://creativecommons.org/licenses/by-nc-nd/4.0/)
 
-## Author
+# Author
 [Emil Rühmland](https://github.com/emilrueh)
