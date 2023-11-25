@@ -1,11 +1,12 @@
 from ..utility.logger import get_logger
-from ..utility.data import backup_df
-from ..utility.decorator import retry
+from ..data.various import backup_df
 
-import time, requests, os, pandas as pd
+# from ..utility.decorator import retry
+
+import time, os, pandas as pd
 import openai
 
-from ..ai.assistant import init_openai_client
+from .setup import init_openai_client
 
 client = init_openai_client()
 

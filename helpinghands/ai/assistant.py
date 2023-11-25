@@ -1,25 +1,14 @@
 from time import sleep
-from openai import OpenAI
-from dotenv import load_dotenv
-import os
+import pathlib
 
-from ..utility.data import choose_random_file
-from ..audio.processing import bpm_match_two_files, play_sound, speaking
+from ..ai.tts import text_to_speech
+from ..audio.music import mix_voice_and_music
+from ..data.text import write_to_txt_file
+
+from .setup import init_openai_client
 
 
 # setup
-def init_openai_client(raw_api_key=None, dotenv_key=None):
-    load_dotenv()
-
-    api_key = (
-        os.getenv(dotenv_key)
-        if dotenv_key and dotenv_key != "OPENAI_API_KEY"
-        else raw_api_key
-    )
-
-    return OpenAI(api_key=api_key)
-
-
 def create_assistant(
     instructions_prompt=None,
     role_or_name=None,
@@ -109,7 +98,7 @@ def list_messages(openai_client, thread_obj):
 
 
 # send message and get reply
-def talk_to_assistant(
+def msg_create_send_receive(
     openai_client,
     assistant_obj,
     thread_obj,
@@ -139,9 +128,13 @@ def talk_to_assistant(
     return reply
 
 
+# CONVERSATION FUNCTIONS
+
+
+# start new conversation
 def init_conversation(
     role="You are a helpful assistant.",
-    instructions="Your task is to do basic computer work.",
+    instructions="Your task is to assist the user with their questions.",
 ):
     # setup openai assistant
     openai_client, assistant_obj = create_assistant(
@@ -160,14 +153,21 @@ def have_conversation(
     assistant_obj=None,
     thread_obj=None,
     current_user_name=None,
-    initial_user_prompt="Hi, my name is {}",
+    initial_user_prompt="Hello. Who are you?",
     assistant_role=None,
     assistant_instructions=None,
     run_instructions=None,  # what do I use those run instructions for?
     conversation_id=None,
     output_processing="print",
-    output_directory=None,
+    output_dir=None,
 ):
+    if output_dir is not None:
+        output_dir_obj = pathlib.Path(output_dir)
+
+    # optional initial setup:
+    #   - either start new conversation
+    #   - or continue previous conversation
+
     # initialize new conversation and new assistant plus openai client
     if openai_client is None and assistant_obj is None and thread_obj is None:
         print("Initializing new conversation...")
@@ -175,7 +175,7 @@ def have_conversation(
             role=assistant_role, instructions=assistant_instructions
         )
 
-    # error for later implementation of seperate setups
+    # print error for later implementation of seperate setup of client, assistant, thread, and conversation
     elif openai_client is None or assistant_obj is None or thread_obj is None:
         print(
             "Error: Sorry! The 'have_ conversation' function takes either all or none prerequisites.\nYou provided either one or two.\n\nExiting..."
@@ -186,25 +186,25 @@ def have_conversation(
     elif conversation_id:
         pass  # thread managment
 
-    # settings
+    # SETTINGS
 
     # fmt: off
-    # CONVERSATION LOOP
-    # talk to the assistant in the current thread
-    # add username to initial greeting if nothing else provided
-    conversation_iteration = 0
+    conv_iter = 0
 
-    if current_user_name and initial_user_prompt and "{}" in initial_user_prompt:
-        initial_user_prompt = initial_user_prompt.format(current_user_name)
-    elif current_user_name and not initial_user_prompt:
-        initial_user_prompt += current_user_name
-    user_prompt = initial_user_prompt
+    # add user name to conversation start if provided
+    if current_user_name and initial_user_prompt:
+        user_prompt = initial_user_prompt + f"My name is {current_user_name}"
+    else:
+        user_prompt = initial_user_prompt
+
+    # CONVERSATION LOOP
 
     while user_prompt not in ["break", "stop", "quit", "exit", "q"]:
-
+        #
         # PROCESS USER INPUT:
-        print("Processing...")
-        assistant_response = talk_to_assistant(
+        print("Creating and sending message...")
+
+        assistant_response = msg_create_send_receive(
             openai_client,
             assistant_obj,
             thread_obj,
@@ -212,28 +212,35 @@ def have_conversation(
             run_instructions=run_instructions,
         )
 
-        # cleaning response before processing
-        if "verse" in assistant_response.lower():
-            assistant_response = assistant_response.lower().replace("verse", "")
-        if "chorus" in assistant_response.lower():
-            assistant_response = assistant_response.lower().replace("chorus", "")
+        # SAVING CONVERSATION TO .TXT FILE
+        print("Saving iteration to .txt file...")
+
+        # formatting of user and system reponses
+        iter_fmt = f"Iteration: {conv_iter}"
+        user_fmt = f"User:\n{user_prompt}"
+        system_fmt = f"System:\n{assistant_response}"
+        conversation_fmt = f"{iter_fmt}\n\n{user_fmt}\n\n{system_fmt}\n\n\n"
+
+        write_to_txt_file(conversation_fmt, output_file_path=output_dir_obj / "conversation.txt")
 
         # SYSTEM OUTPUT
         print("Choosing system output...")
-        if conversation_iteration < 1:
-            # choose simple print on first iteration
-            system_output = choose_output(assistant_response, style="print")
-        else:
-            # choose voice output on concecutive iterations
-            system_output = choose_output(assistant_response, style=output_processing, output_directory=output_directory)
-        # print(system_output)
-        # print(f"\n{system_output}")
+
+        system_output = choose_output(
+            assistant_response,
+            output_style=output_processing if conv_iter > 0 else "print",  # first output only prints
+            output_dir=output_dir_obj,
+        )
+        # implement various outputs returned (or does it happen outside of the function?)
+        #   - I guess it needs to happen inside the function (as otherwise how to loop?)
 
         # USER INPUT
+
         user_prompt = input("\n> ")
-        conversation_iteration += 1
-    
+        conv_iter += 1
+
     print(f"\nBye bye.\n")
+
     # fmt: on
 
     # store and return for later processing
@@ -243,40 +250,13 @@ def have_conversation(
     return assistant_id, thread_id
 
 
-# Work In Progress:
-# -----------------
-
-
 # SELECT OUTPUT PROCESSING
-def choose_output(text, style=None, output_directory=None):
-    if style == "print":
+def choose_output(
+    text,
+    output_style=None,
+    output_dir=None,
+):
+    if output_style == "print":
         print(text)
-    elif style == "voice":
-        if output_directory is None:
-            print("Warning: No output directory for gTTS specified.")
-        voice_output(text, output_directory, bpm=160)
-
-
-def voice_output(text, output_directory, bpm=120):
-    # creating voice audio file
-    voice_file_path = speaking(text, output_directory)
-
-    # navigate to directories
-    beats_dir = os.path.join(output_directory, "beats")
-    adj_bpm_beats_dir = os.path.join(beats_dir, "adjusted_bpm")
-
-    # choosing random file from dir
-    random_music_file_path = choose_random_file(beats_dir)
-
-    # bpm matching of the two files
-    new_voice_path, new_music_path = bpm_match_two_files(
-        file_path_one=voice_file_path,
-        file_path_two=random_music_file_path,
-        output_dir=adj_bpm_beats_dir,
-        tempo=bpm,
-    )
-
-    # playing voice
-    play_sound(new_voice_path)
-    # playing music (at lower volume)
-    play_sound(new_music_path, volume=0.2)
+    elif output_style == "voice":
+        mix_voice_and_music(text_to_speech(text, output_dir), output_dir)

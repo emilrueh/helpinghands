@@ -11,13 +11,7 @@ from selenium.webdriver.chrome.options import Options as ChromeOptions
 from selenium.webdriver.chrome.service import Service as ChromeService
 from selenium.webdriver.common.proxy import Proxy, ProxyType
 
-from selenium.common.exceptions import (
-    WebDriverException,
-    NoSuchWindowException,
-    InvalidSessionIdException,
-    SessionNotCreatedException,
-    TimeoutException,
-)
+from selenium.common.exceptions import SessionNotCreatedException
 
 from bs4 import BeautifulSoup
 from nordvpn_switcher import initialize_VPN, rotate_VPN, terminate_VPN
@@ -75,7 +69,9 @@ def open_website(
     # BROWSER SETUP
     if not BROWSER:
         try:
-            logger.debug(f"Setting up browser {'with' if with_proxy else 'without'} Proxy...")
+            logger.debug(
+                f"Setting up browser {'with' if with_proxy else 'without'} Proxy..."
+            )
             BROWSER, WAIT = setup_browser(browser_config, with_proxy)
         except OptionsError as e:
             log_exception(e, log_level="Exception", verbose=True)
@@ -419,7 +415,9 @@ def connect_to_vpn(country_list, use_env_credentials=False):
 
         use_settings_file = 1
 
-    vpn_settings = initialize_VPN(stored_settings=use_settings_file, area_input=country_list)
+    vpn_settings = initialize_VPN(
+        stored_settings=use_settings_file, area_input=country_list
+    )
     logger.info(f"Connecting to NordVPN with settings {vpn_settings}...")
     rotate_VPN(vpn_settings)
     return vpn_settings

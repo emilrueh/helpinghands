@@ -1,93 +1,15 @@
-from openai import OpenAI
-from dotenv import load_dotenv
 import os
 
-from PIL import Image
-import base64
-from io import BytesIO
-
-import requests
-
 from ..ai.gpt import chat
+from ..ai.dalle import generate_image
+from ..data.image import image_to_base64str
 
-load_dotenv()
+from .setup import init_openai_client
 
-client = OpenAI()
+client = init_openai_client()
+
 
 # https://platform.openai.com/docs/guides/vision
-
-
-def image_to_base64str(image_source, file_type="JPEG"):
-    if "http" in image_source or "https" in image_source:
-        # Handle URL
-        response = requests.get(image_source)
-        if response.status_code == 200:
-            image_data = BytesIO(response.content)
-        else:
-            print("Failed to download image.")
-            return None
-    else:
-        # Handle file path
-        if "." in file_type:
-            file_type = file_type.replace(".", "")
-        if file_type == "jpg":
-            file_type = "jpeg"
-        image_data = image_source
-
-    try:
-        with Image.open(image_data) as image:
-            buffered = BytesIO()
-            # Convert to RGB if necessary
-            if image.mode in ("RGBA", "LA") or (
-                image.mode == "P" and "transparency" in image.info
-            ):
-                image = image.convert("RGB")
-            image.save(buffered, format=file_type.upper())
-            image_bytes = buffered.getvalue()
-            base64_encoded = base64.b64encode(image_bytes).decode("utf-8")
-            return f"data:image/{file_type.lower()};base64,{base64_encoded}"
-    except Exception as e:
-        print(f"{type(e).__name__} converting image: {e}")
-        return None
-
-
-def save_b64str_images_to_file(
-    images: list, files_directory: str = "./", file_extension: str = None
-):
-    for i, image in enumerate(images):
-        # Decode the base64 string
-        image_data = base64.b64decode(image.split(",")[1])
-
-        # Optionally process the image with PIL (e.g., convert format)
-        with Image.open(BytesIO(image_data)) as img_obj:
-            # get the file extension
-            ext = file_extension or img_obj.format.lower()
-
-            buffered = BytesIO()
-            img_obj.convert("RGB").save(buffered, format=ext)
-            buffered.seek(0)
-            output_image_bytes = buffered.read()
-
-        # fmt: off
-        # Write the image bytes to a file
-        with open(os.path.join(
-                files_directory, f"generated_image_{i + 1}.{ext}"
-            ), mode="wb") as file:
-            file.write(output_image_bytes)
-
-
-# ---
-
-
-# DALL-E 3
-def generate_image(prompt, size="1024x1024", amount=1, ai_model="dall-e-3"):
-    response = client.images.generate(
-        model=ai_model, prompt=prompt, size=size, quality="standard", n=amount
-    )
-    return response.data[0].url
-
-
-# ---
 
 
 def view_image(images_in_base64str: list, prompt, max_tokens=300):
@@ -116,7 +38,7 @@ def view_image(images_in_base64str: list, prompt, max_tokens=300):
     return response.choices[0].message.content
 
 
-def image_generation_iteration(
+def image_description_iteration(
     image: str,
     iterations: int = 3,
     directory: str = None,
