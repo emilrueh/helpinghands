@@ -3,7 +3,7 @@ import pathlib
 
 from ..ai.tts import text_to_speech
 from ..audio.music import mix_voice_and_music
-from ..utility.text import write_to_txt_file
+from ..data.text import write_to_txt_file
 
 from .setup import init_openai_client
 
@@ -214,7 +214,7 @@ def have_conversation(
 
         # SAVING CONVERSATION TO .TXT FILE
         print("Saving iteration to .txt file...")
-        
+
         # formatting of user and system reponses
         iter_fmt = f"Iteration: {conv_iter}"
         user_fmt = f"User:\n{user_prompt}"

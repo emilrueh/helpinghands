@@ -2,7 +2,7 @@ import os
 
 from ..ai.gpt import chat
 from ..ai.dalle import generate_image
-from ..utility.image import image_to_base64str
+from ..data.image import image_to_base64str
 
 from .setup import init_openai_client
 

@@ -1,7 +1,7 @@
 from ..utility.logger import get_logger
 from ..utility.helper import log_exception
-from ..utility.data import backup_df
-from ..utility.image import get_image, get_image_res
+from ..data.various import backup_df
+from ..data.image import get_image, get_image_res
 from ..utility.decorator import time_execution
 
 from super_image import ImageLoader
