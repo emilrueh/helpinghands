@@ -1,3 +1,5 @@
+# fmt: off
+
 from gtts import gTTS
 from dotenv import load_dotenv
 
