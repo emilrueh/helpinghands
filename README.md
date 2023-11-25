@@ -1,114 +1,156 @@
 # HelpingHands Library
 
-The HelpingHands library provides various modules for different "every-day" functionalities. This README file provides an overview of the modules and their functionalities.
+The HelpingHands library provides various modules for different AI integration related "every-day" functionalities using Python.
+
+
+![HelpingHands Library Logo - A modern cyberpunk style logo featuring stylized hands and digital elements representing software development](https://github.com/emilrueh/helpinghands/blob/dev/helpinghands_logo_v1.png)
+
 
 ## Modules
 
-### utility
-
-The `utility` module provides various utility functions and submodules.
-
-#### data
-- `get_data_dir()`: Returns the directory for storing data.
-- `backup_data()`: Backs up data to a specified location.
-- `json_save()`: Saves data to a JSON file.
-- `json_read()`: Reads data from a JSON file.
-- `flatten_data()`: Flattens nested data structures.
-- `json_to_df()`: Converts JSON data to a DataFrame.
-- `save_dict_to_csv()`: Saves a dictionary to a CSV file.
-- `create_df()`: Creates a DataFrame from data.
-- `swap_columns()`: Swaps the positions of two columns in a DataFrame.
-- `load_from_csv()`: Loads data from a CSV file into a DataFrame.
-- `delete_duplicates()`: Deletes duplicate rows from a DataFrame.
-- `delete_duplicates_add_keywords()`: Deletes duplicate rows and adds keywords to a DataFrame.
-- `map_keywords_to_categories()`: Maps keywords to categories in a DataFrame.
-- `find_and_assign_tags()`: Finds and assigns tags to data in a DataFrame.
-- `add_relevant_tags()`: Adds relevant tags to data in a DataFrame.
-- `replace_values()`: Replaces values in a DataFrame.
-- `contains_gmaps()`: Checks if a DataFrame contains Google Maps data.
-- `manipulate_csv_data()`: Manipulates data in a CSV file.
-- `insert_newlines()`: Inserts newlines into text.
-- `append_to_or_create_txt_file()`: Appends to or creates a text file.
-- `open_txt_file()`: Opens a text file.
-
-#### settings
-- `load_settings()`: Loads settings.
-  - The function takes parameters to define paths for loading settings, secrets keys, and other environmental settings.
-
-#### logger
-- `config_logger()`: Configures the logger.
-  - The function accepts multiple parameters that define logger characteristics such as log levels, formats, and file names. Sensible default values are provided for most parameters.
-
-#### tokenbucket
-- `TokenBucket`: Implements a token bucket algorithm.
-
-#### decorator
-- `retry`: A decorator for retrying functions.
-- `time_execution`: Times the execution of a function.
-
-#### helper
-- `get_git_tree()`: Retrieves the Git tree of a repository.
-- `colorize()`: Adds color to text.
-- `get_variable_name()`: Gets the name of a variable as a string.
-- `ensure_windows_os()`: Ensures the OS is Windows.
-
-#### web
-
-The `web` module provides various web-related functions (Note: may be disabled due to missing dependencies).
-
-- `WebConfig()`: Class for configuring web settings.
-- `setup_browser()`: Sets up the browser.
-- `get_website()`: Retrieves a website.
-- `setup_proxy_simple()`: Sets up a simple proxy.
-- `setup_proxy_wire()`: Sets up a selenium-wire proxy.
-- `test_proxy()`: Tests the proxy.
-- `get_original_ip()`: Gets the original IP.
-- `get_current_ip()`: Gets the current IP.
-- `rotate_ip()`: Rotates the IP.
-- `make_soup()`: Makes BeautifulSoup object.
-- `connect_to_vpn()`: Connects to VPN.
-- `disconnect_from_vpn()`: Disconnects from VPN.
-- `check_internet()`: Checks the internet connection.
+> This modules section will give a grand overview over all submodules and the functions meant to be called from projects using this library.
 
 ### AI
+#### whisper.py
+- `call_whisper()`: Calls the Whisper endpoint for audio transcription.
 
-The `ai` module provides functions for working with OpenAI APIs.
+#### gpt.py
+- `chat()`: Interacts with the GPT endpoint for text-based conversations.
 
-#### Functions
-- `call_whisper()`: Calls the Whisper API.
-- `call_gpt()`: Calls the GPT API.
-- `gpt_loop()`: Loops the GPT API call.
-- `generate_image()`: Generates an image using the DALLE model.
-- `dallee_loop()`: Loops the DALLE model image generation.
-- `super_image()`: pip image upscaling solution
+#### dalle.py
+- `generate_image()`: Generates images using the DALLE model.
 
-### audio
+#### assistant.py
+- `have_conversation()`: Facilitates an AI-powered conversation.
 
-The `audio` module provides functions for working with audio files (Note: may be disabled due to missing dependencies).
+#### tts.py
+- `text_to_speech()`: Converts text to speech.
 
-#### Sounds
+#### setup.py
+- `init_openai_client()`: Initializes the OpenAI client.
+
+#### vision.py
+- `view_image()`: Views an image.
+- `image_description_iteration()`: Iteratively describes images.
+
+#### upscale.py (conditional)
+- `super_image()`: Upscales images using AI.
+- `super_image_loop()`: Continuously upscales images.
+
+---
+
+### AUDIO
+#### sounds.py
 - `uhoh()`: Plays "uh-oh" sound.
 - `criterr()`: Plays critical error sound.
 - `warning()`: Plays warning sound.
 - `success()`: Plays success sound.
 
-#### Conversion
-- `ogg_to_mp3()`: Converts OGG audio files to MP3 format.
+#### converter.py
+- `convert_audio()`: Converts audio files between different formats.
+- `combine_audio_files()`: Combines multiple audio files into one.
 
-#### Recording
+#### recorder.py
 - `AudioRecorder()`: Class for recording audio.
+
+#### processing.py
+- `play_sound()`: Plays a sound file.
+- `get_tempo()`: Gets the tempo (BPM) of an audio file.
+- `match_tempo()`: Matches the tempo of an audio file to a given BPM.
+- `bpm_match_two_files()`: Matches the tempo between two audio files.
+- `get_audio_length()`: Retrieves the length of an audio file.
+
+#### music.py
+- `generate_music()`: Generates music based on specified parameters.
+
+---
+
+### DATA
+#### various.py
+- `get_data_dir()`: Retrieves the data directory.
+- `add_random_files()`: Adds random files to a directory.
+- `choose_random_file()`: Chooses a random file from a directory.
+- `clean_directory()`: Cleans a specified directory.
+- `remove_duplicate_words()`: Removes duplicate words from text.
+- `extract_number()`: Extracts a number from text.
+- `json_save()`: Saves data in JSON format.
+- `json_read()`: Reads data from a JSON file.
+- `json_to_df()`: Converts JSON data to a DataFrame.
+- `create_df()`: Creates a new DataFrame.
+- `df_from_csv()`: Creates a DataFrame from a CSV file.
+- `backup_df()`: Backs up a DataFrame.
+
+#### text.py
+- `insert_newlines()`: Inserts new lines into text.
+- `write_to_txt_file()`: Writes text to a TXT file.
+- `load_text_from_file()`: Loads text from a file.
+- `open_txt_file()`: Opens a TXT file.
+
+#### image.py
+- `convert_byte_sizes()`: Converts byte sizes.
+- `get_image_res()`: Gets the resolution of an image.
+- `get_image()`: Retrieves an image.
+- `image_to_bytes()`: Converts an image to bytes.
+- `bytes_to_base64()`: Converts bytes to base64.
+- `image_to_base64str()`: Converts an image to a base64 string.
+- `get_file_size()`: Gets the file size of an image.
+- `compress_image()`: Compresses an image.
+
+---
+
+### UTILITY
+#### settings.py
+- `load_settings()`: Loads settings from specified paths.
+
+#### logger.py
+- `config_logger()`: Configures the logger.
+- `LOGGER_NAME`: A constant defining the logger name.
+
+#### tokenbucket.py
+- `TokenBucket()`: Implements a token bucket algorithm.
+- `api_rate_limit_wait()`: Waits based on the token bucket for API rate limiting.
+
+#### decorator.py
+- `retry()`: A decorator for retrying functions.
+- `time_execution()`: Times the execution of a function.
+
+#### helper.py
+- `log_exception()`: Logs exceptions.
+- `get_git_tree()`: Retrieves the Git tree of a repository.
+- `colorize()`: Adds color to text.
+- `get_variable_name()`: Gets the name of a variable as a string.
+- `ensure_windows_os()`: Ensures the OS is Windows.
+- `log_memory_usage()`: Logs memory usage.
+
+#### web.py (conditional)
+- `WebConfig()`: Class for configuring web settings.
+- `open_website()`: Opens a specified website.
+- `setup_browser()`: Sets up the browser.
+- `setup_proxy_wire()`: Sets up a selenium-wire proxy.
+- `setup_proxy_simple()`: Sets up a simple proxy.
+- `test_proxy()`: Tests the proxy configuration.
+- `listen_on_port()`: Listens on a specified port.
+- `get_original_ip()`: Gets the original IP address.
+- `get_current_ip()`: Gets the current IP address.
+- `rotate_ip()`: Rotates the IP address.
+- `make_soup()`: Makes a BeautifulSoup object for web parsing.
+- `connect_to_vpn()`: Connects to a VPN.
+- `disconnect_from_vpn()`: Disconnects from a VPN.
+- `check_internet()`: Checks the internet connection.
 
 ---
 
 ## Installation
 
-To install the HelpingHands library, you can use pip:
+To install the HelpingHands library, you will need to clone this repo and install it in editable mode with pip:
 
-`pip install helpinghands`
+`git clone https://github.com/emilrueh/helpinghands.git`
+
+`pip install -e path/to/lib/directory`
 
 ## Usage
 
-Here's an example of how to use the HelpingHands library with an example definition of a function for audio transcription using the dallee model from OpenAI:
+Here's an example of how the library might be used with an example definition of a function for audio transcription using the OpenAI's whisper model:
 
 ```python
 from helpinghands.utility.logger import config_logger
