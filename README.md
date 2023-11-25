@@ -2,6 +2,18 @@
 
 The HelpingHands library provides various modules for different AI integration related "every-day" functionalities using Python.
 
+## Table of Contents
+- [Introduction](#helpinghands-library)
+- [Modules](#modules)
+  - [AI](#ai)
+  - [Audio](#audio)
+  - [Data](#data)
+  - [Utility](#utility)
+- [Installation](#installation)
+- [Usage](#usage)
+- [License](#license)
+- [Author](#author)
+
 
 <div align="center">
     <img src="https://github.com/emilrueh/helpinghands/blob/dev/helpinghands_logo_v1.png" alt="HelpingHands Library Logo - A modern cyberpunk style logo featuring stylized hands and digital elements representing software development" width="420">
