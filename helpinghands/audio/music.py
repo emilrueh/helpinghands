@@ -351,7 +351,7 @@ def choose_music_style(music_style, output_dir_obj, song_length, bpm):
 def mix_voice_and_music(
     voice_input_file_path,
     output_dir,
-    music_style: str = "generated",
+    music_style: str = "random",
     bpm: int = 120,
 ):
     # check and create dirs
@@ -362,7 +362,7 @@ def mix_voice_and_music(
     voice_length = get_audio_length(voice_input_file_path)
 
     # music selection
-    music_file_path = choose_music_style(music_style, output_dir_obj, voice_length, bpm)
+    music_file_path = choose_music_style(music_style, output_dir_obj / "beats", voice_length, bpm)
 
     # bpm matching of the two files
     new_voice_path, new_music_path = bpm_match_two_files(
