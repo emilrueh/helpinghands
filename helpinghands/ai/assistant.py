@@ -7,6 +7,8 @@ from ..data.text import write_to_txt_file
 
 from .setup import init_openai_client
 
+from datetime import datetime
+
 
 # setup
 def create_assistant(
@@ -219,7 +221,7 @@ def have_conversation(
         iter_fmt = f"Iteration: {conv_iter}"
         user_fmt = f"User:\n{user_prompt}"
         system_fmt = f"System:\n{assistant_response}"
-        conversation_fmt = f"{iter_fmt}\n\n{user_fmt}\n\n{system_fmt}\n\n\n"
+        conversation_fmt = f"{datetime.now()}\n{iter_fmt}\n\n{user_fmt}\n\n{system_fmt}\n\n\n"
 
         write_to_txt_file(conversation_fmt, output_file_path=output_dir_obj / "conversation.txt")
 
